@@ -3,15 +3,18 @@
 Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
 
 ## Cập nhật dữ liệu hàng tuần
-- Nguồn: file Excel trên máy người dùng `C:\Users\Admin\OneDrive - PVFCCo\App Xuong Phu tro\Bang tin an toan hang tuan\Bang tin an toan - Du lieu.xlsx`.
+- Nguồn: file Excel trên máy người dùng `C:\Users\Admin\OneDrive - PVFCCo\App Xuong Phu tro\Bang tin an toan hang tuan\Bang tin an toan hang tuan.xlsx` (file gốc của người dùng, chọn 14/11/2026; KHÔNG dùng `Bang tin an toan - Du lieu.xlsx``.
 - Stage file đó (device_stage_files), chép vào `web/data/bangtin.xlsx`, kiểm tra web đọc được (python3 -m http.server trong `web/` + google-chrome headless `--screenshot`), commit thẳng vào `main` với thông điệp “Cập nhật dữ liệu Tuần NN/YYYY”.
 - Không sửa nội dung Excel của người dùng khi chỉ cập nhật dữ liệu.
 
-## Cấu trúc Excel (web đọc theo tên sheet/tên cột, không phân biệt dấu)
-- `CauHinh` (khóa/giá trị: tiêu đề, đơn vị, người ký, thông điệp mặc định, số tuần trên biểu đồ, lũy tiến đầu kỳ)
-- `SoLieuTuan` (mỗi tuần 1 dòng: Năm, Tuần, ngày, GPLV, GPLV không tuân thủ, ĐNTĐ chủ trì/liên quan, Sự cố, Nearmiss, thẻ an toàn / KAT khắc phục ngay / KAT chờ khắc phục, thông điệp)
-- `QuyDinh`, `TonDong` (+ảnh theo dòng), `GiaiPhap`, `BieuDuong` (+ảnh), `CongViecTuanToi`: Năm/Tuần chỉ ghi ở dòng đầu mỗi tuần (điền xuống).
+## Cấu trúc Excel (file gốc, 1 sheet, mỗi tuần một khối dòng)
+- Dòng 2–3 là tiêu đề (gộp ô): Tuần | GPLV (Số GPLV, Số GPLV không tuân thủ) | ĐNTD | Sự cố | Nearmiss | Số thẻ STOP (an toàn, KAT khắc phục ngay, KAT chờ khắc phục) | Quy định an toàn | Tồn đọng | Hành động khắc phục | Giải pháp và đề xuất | Biểu dương | Các công việc lưu ý tuần tới.
+- Mỗi tuần: số tuần + số liệu ở dòng đầu khối (ô gộp), các danh sách mỗi mục một dòng; tuần mới thêm ngay dưới tuần trước. Web nhận cột theo tên tiêu đề (không phân biệt dấu), `buildFromWide()` trong index.html.
+- Ô Hành động khắc phục có mà Tồn đọng trống → nối vào tồn đọng phía trên. Ảnh nổi gắn vào tồn đọng cùng dòng/dòng trên gần nhất trong khối (ảnh ở cột Biểu dương → biểu dương).
+- Không có cột Năm: năm lấy `MAC_DINH.year`, tự tăng khi số tuần quay về nhỏ hơn. ĐNTĐ chỉ 1 cột → hiển thị 1 ô "Số hồ sơ ĐNTĐ" (nếu thêm cột "ĐNTĐ chủ trì"/"ĐNTĐ liên quan" thì hiển thị 2 ô).
+- Hằng `MAC_DINH` trong index.html: người ký, thông điệp, số liệu T34–T44/2026 (lấy từ PDF Tuần 45, để vẽ biểu đồ/lũy tiến; tuần có trong Excel thì Excel thắng), lũy tiến đầu kỳ (2 GP không tuân thủ, 1 sự cố). Đổi người ký/thông điệp: sửa `MAC_DINH.cfg` ở cả hai bản HTML.
 - Lũy tiến = tổng các tuần cùng năm ≤ tuần đang xem + lũy tiến đầu kỳ.
+- Web vẫn đọc được định dạng nhiều sheet (CauHinh/SoLieuTuan/...) nếu sau này dùng.
 
 ## Giao diện
 - `web/index.html` là bản build của app (logo nhúng base64). Bản dùng offline trên máy người dùng: `Bang tin an toan.html` cùng thư mục OneDrive — giữ hai bản giống nhau khi sửa giao diện.

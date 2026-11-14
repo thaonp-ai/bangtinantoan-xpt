@@ -354,12 +354,82 @@ function readList(sh,fields){
   return out;
 }
 
+/* ===== MẶC ĐỊNH (dùng khi đọc file Excel gốc dạng "mỗi tuần một khối dòng") =====
+   - cfg: tiêu đề, người ký, thông điệp
+   - weeks: số liệu các tuần chưa có trong Excel (lấy từ bảng tin Tuần 45) để vẽ biểu đồ & tính lũy tiến;
+     tuần nào có trong Excel thì dùng số liệu Excel.
+   - open: lũy tiến đầu kỳ (chưa rõ tuần phát sinh). */
+const MAC_DINH={
+  cfg:{title:"BẢNG TIN AN TOÀN VỆ SINH LAO ĐỘNG",unit:"XƯỞNG PHỤ TRỢ",s1t:"KỸ THUẬT VIÊN AN TOÀN",s1:"Trần Việt Phúc",s2t:"QUẢN ĐỐC XƯỞNG PHỤ TRỢ",s2:"Lê Hậu Khiết",
+    msgT:"THÔNG ĐIỆP CHỈ ĐẠO CỦA QUẢN ĐỐC XƯỞNG PHỤ TRỢ",msg:"\"AN TOÀN LÀ TRÊN HẾT - KHÔNG CÓ VIỆC GÌ CẤP BÁCH ĐẾN MỨC PHẢI LÀM MẤT AN TOÀN! Toàn xưởng sẵn sàng khởi động tuần mới an toàn, chất lượng và hiệu quả.\"",nWeeks:12},
+  year:2026,
+  open:{y:2026,gp:0,gpk:2,dct:0,dlq:0,sc:1,nm:0,at:0,kpn:0,cho:0},
+  // [tuần, GPLV, thẻ an toàn, KAT khắc phục ngay, KAT chờ khắc phục]
+  weeks:[[34,67,22,13,1],[35,77,16,24,3],[36,27,28,9,1],[37,62,33,14,2],[38,54,57,9,1],[39,38,12,10,4],[40,48,53,35,3],[41,42,28,25,2],[42,64,59,30,13],[43,60,49,17,17],[44,48,60,17,12]]
+};
+
+function buildFromWide(sheets){
+  const blocks=[];let found=false,dnSingle=false;
+  for(const name in sheets){
+    const sh=sheets[name];const rs=Object.keys(sh.rows).map(Number).sort((a,b)=>a-b);
+    let hr=null;
+    for(const r of rs.slice(0,8)){const v=Object.values(sh.rows[r]).map(norm);if(v.includes("tuan")&&v.some(x=>x.startsWith("gplv")||x.startsWith("tondong"))){hr=r;break;}}
+    if(hr==null)continue;found=true;
+    const top=sh.rows[hr]||{},sub=sh.rows[hr+1]||{};const cols=new Set([...Object.keys(top),...Object.keys(sub)].map(Number));
+    const lab={};for(const c of cols)lab[c]=norm(sub[c]!=null&&sub[c]!==""?sub[c]:top[c]);
+    const find=f=>{for(const c of [...cols].sort((a,b)=>a-b))if(f(lab[c]||""))return c;return -1;};
+    const C={w:find(x=>x==="tuan"),y:find(x=>x==="nam"),
+      gp:find(x=>x.includes("gplv")&&!x.includes("khong")),gpk:find(x=>x.includes("gplv")&&x.includes("khong")),
+      dct:find(x=>x.startsWith("dntd")&&x.includes("chutri")),dlq:find(x=>x.startsWith("dntd")&&x.includes("lienquan")),dn:find(x=>x==="dntd"||x==="sohosodntd"),
+      sc:find(x=>x==="suco"||x==="sosuco"),nm:find(x=>x.startsWith("nearmiss")),
+      at:find(x=>x.includes("theantoan")),kpn:find(x=>x.includes("khacphucngay")),cho:find(x=>x.includes("chokhacphuc")),
+      rule:find(x=>x.startsWith("quydinh")),iss:find(x=>x.startsWith("tondong")),act:find(x=>x.startsWith("hanhdong")),
+      sol:find(x=>x.startsWith("giaiphap")),pr:find(x=>x.startsWith("bieuduong")),nx:find(x=>x.startsWith("congviec")||x.startsWith("cacconviec")||x.includes("tuantoi")),
+      msg:find(x=>x.startsWith("thongdiep"))};
+    const str=v=>v==null?"":(v instanceof Date?fmtD(v):String(v).trim());
+    let cur=null,y=null,prevW=null;dnSingle=C.dct<0&&C.dlq<0&&C.dn>=0;
+    for(const r of rs.filter(r=>r>hr+1)){
+      const row=sh.rows[r];const wv=C.w>=0?row[C.w]:null;
+      if(wv!=null&&wv!==""&&num(wv)>0){
+        const w=num(wv);
+        if(C.y>=0&&row[C.y])y=num(row[C.y]);else if(y==null)y=MAC_DINH.year;else if(prevW!=null&&w<prevW)y++;
+        prevW=w;const g=k=>C[k]>=0?num(row[C[k]]):0;
+        cur={y,w,first:r,gp:g("gp"),gpk:g("gpk"),dct:C.dct>=0?g("dct"):g("dn"),dlq:g("dlq"),sc:g("sc"),nm:g("nm"),at:g("at"),kpn:g("kpn"),cho:g("cho"),
+          msg:C.msg>=0?str(row[C.msg]):"",rules:[],issues:[],sols:[],praise:[],next:[]};
+        blocks.push(cur);
+      }
+      if(!cur)continue;
+      const t=k=>C[k]>=0?str(row[C[k]]):"";
+      if(t("rule"))cur.rules.push({_row:r,y:cur.y,w:cur.w,t:t("rule"),images:[]});
+      if(t("iss"))cur.issues.push({_row:r,y:cur.y,w:cur.w,t:t("iss"),a:t("act"),images:[]});
+      else if(t("act")){const last=cur.issues[cur.issues.length-1];if(last)last.a+=(last.a?"\n":"")+t("act");else cur.issues.push({_row:r,y:cur.y,w:cur.w,t:"",a:t("act"),images:[]});}
+      if(t("sol"))cur.sols.push({_row:r,y:cur.y,w:cur.w,t:t("sol"),images:[]});
+      if(t("pr"))cur.praise.push({_row:r,y:cur.y,w:cur.w,n:"",u:"",t:t("pr"),images:[]});
+      if(t("nx"))cur.next.push({_row:r,y:cur.y,w:cur.w,t:t("nx"),images:[]});
+    }
+    // ảnh: gắn vào mục cùng dòng (hoặc dòng trên gần nhất) trong khối tuần; ảnh ở cột Biểu dương -> biểu dương
+    for(const im of sh.images){
+      if(im.row<=hr+1)continue;
+      let b=null;for(const x of blocks)if(x.first<=im.row)b=x;if(!b)continue;
+      const list=(C.pr>=0&&im.col===C.pr&&b.praise.length)?b.praise:b.issues;if(!list.length)continue;
+      let it=list[0];for(const x of list)if(x._row<=im.row)it=x;it.images.push(im.url);
+    }
+  }
+  if(!found)return null;
+  const map={};
+  for(const[w,gp,at,kpn,cho]of MAC_DINH.weeks){const y=MAC_DINH.year;map[y*100+w]={y,w,gp,gpk:0,dct:0,dlq:0,sc:0,nm:0,at,kpn,cho,msg:""};}
+  for(const b of blocks)map[b.y*100+b.w]=b;
+  const weeks=Object.values(map).map(x=>{const mon=isoMonday(x.y,x.w),sun=new Date(mon.getTime()+6*864e5);return{...x,key:x.y*100+x.w,from:mon,to:sun,upd:sun};}).sort((a,b)=>a.key-b.key);
+  const all=k=>blocks.flatMap(b=>b[k]);
+  return{dnSingle,cfg:{...MAC_DINH.cfg},weeks,open:{...MAC_DINH.open},rules:all("rules"),issues:all("issues"),sols:all("sols"),praise:all("praise"),next:all("next")};
+}
+
 function buildModel(sheets){
   const cfgSh=findSheet(sheets,"CauHinh","Cấu hình");const cfg={};
   if(cfgSh)for(const r in cfgSh.rows){const row=cfgSh.rows[r];if(row[0]!=null)cfg[norm(row[0])]=row[1];}
   const C=(k,d)=>{const v=cfg[norm(k)];return v==null||v===""?d:v;};
   const slSh=findSheet(sheets,"SoLieuTuan","Số liệu tuần");
-  if(!slSh)throw new Error("Không tìm thấy sheet “SoLieuTuan” trong file Excel. Hãy dùng file mẫu “Bang tin an toan - Du lieu.xlsx”.");
+  if(!slSh){const wm=buildFromWide(sheets);if(wm&&wm.weeks.length)return wm;throw new Error("Không tìm thấy dữ liệu bảng tin (cần sheet có cột “Tuần”, “GPLV”, “Tồn đọng”…).");}
   const{hr,m}=headerMap(slSh);
   const K={y:["Năm"],w:["Tuần"],from:["Từ ngày"],to:["Đến ngày"],upd:["Ngày cập nhật"],gp:["Số GPLV","GPLV"],gpk:["GPLV không tuân thủ","Số GPLV không tuân thủ"],
     dct:["ĐNTĐ chủ trì"],dlq:["ĐNTĐ liên quan"],sc:["Sự cố"],nm:["Nearmiss","Near miss"],at:["Thẻ an toàn","Số thẻ an toàn"],kpn:["Thẻ KAT khắc phục ngay"],cho:["Thẻ KAT chờ khắc phục"],msg:["Thông điệp"]};
@@ -452,7 +522,7 @@ function render(){
 
   const kp=`<div class="kpis">
     <div class="kgrp ptw"><div class="gh">📄 GIẤY PHÉP PTW</div><div class="gb">${kpi("Số giấy phép",wk.gp,cum("gp"),"GP")}${kpi("Không tuân thủ",wk.gpk,cum("gpk"),"GP",true)}</div></div>
-    <div class="kgrp dn"><div class="gh">🗂 SỐ HỒ SƠ ĐNTĐ</div><div class="gb">${kpi("ĐNTĐ chủ trì",wk.dct,cum("dct"),"hồ sơ")}${kpi("ĐNTĐ liên quan",wk.dlq,cum("dlq"),"hồ sơ")}</div></div>
+    <div class="kgrp dn"><div class="gh">🗂 SỐ HỒ SƠ ĐNTĐ</div><div class="gb"${M.dnSingle?' style="grid-template-columns:1fr"':""}>${M.dnSingle?kpi("Số hồ sơ ĐNTĐ",wk.dct,cum("dct"),"hồ sơ"):kpi("ĐNTĐ chủ trì",wk.dct,cum("dct"),"hồ sơ")+kpi("ĐNTĐ liên quan",wk.dlq,cum("dlq"),"hồ sơ")}</div></div>
     <div class="kgrp sc"><div class="gh">⚠ SỰ CỐ / NEARMISS</div><div class="gb">${kpi("Số sự cố",wk.sc,cum("sc"),"vụ",true)}${kpi("Nearmiss",wk.nm,cum("nm"),"vụ",true)}</div></div></div>`;
   const mx=Math.max(1,wk.at,wk.kpn,wk.cho);
   const hb=(l,v,col)=>`<div class="hbar"><div class="lab">${l}</div><div class="track"><div class="fill" style="width:${Math.max(v/mx*100,v?12:0)}%;background:${col}">${v?fmtN(v)+" thẻ":""}</div>${v?"":`<span style="position:absolute;left:8px;top:0;font-size:10.5px;color:#6B7C7C;line-height:16px">0 thẻ</span>`}</div></div>`;
@@ -482,7 +552,7 @@ function render(){
   const s4=sec("IV","Giải pháp và đề xuất an toàn",sols.length?`${sols.length} giải pháp &amp; cải tiến`:"",sols.length?`<div class="nlist sol">${sols.map((r,i)=>`<div class="nitem"><span class="no">${i+1}</span>${rich(r.t)}</div>`).join("")}</div>`:emptyNote("Chưa có giải pháp/đề xuất cho tuần này."));
 
   const pr=forWeek(M.praise,y,w);
-  const s5=sec("V","Biểu dương gương an toàn","Gương sáng an toàn xưởng",pr.length?`<div class="praise">${pr.map(p=>`<div class="pc">${p.images[0]?`<img src="${p.images[0]}" alt="">`:`<div class="av">★</div>`}<div><div class="nm">${esc(p.n)}</div><div class="un">${esc(p.u)}</div>${rich(p.t)}</div></div>`).join("")}</div>`:emptyNote("Tuần này chưa có cá nhân/tập thể được biểu dương."));
+  const s5=sec("V","Biểu dương gương an toàn","Gương sáng an toàn xưởng",pr.length?`<div class="praise">${pr.map(p=>`<div class="pc">${p.images[0]?`<img src="${p.images[0]}" alt="">`:`<div class="av">★</div>`}<div>${p.n?`<div class="nm">${esc(p.n)}</div>`:""}${p.u?`<div class="un">${esc(p.u)}</div>`:""}${rich(p.t)}</div></div>`).join("")}</div>`:emptyNote("Tuần này chưa có cá nhân/tập thể được biểu dương."));
 
   const nx=forWeek(M.next,y,w);
   const s6=sec("VI","Các công việc lưu ý trong tuần tới","",nx.length?`<div class="nlist">${nx.map((r,i)=>`<div class="nitem alt"><span class="no">${i+1}</span>${rich(r.t)}</div>`).join("")}</div>`:emptyNote("Chưa có nội dung."));

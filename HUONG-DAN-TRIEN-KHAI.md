@@ -9,7 +9,7 @@
 3. (Tùy chọn) Tên miền riêng: project → *Settings → Domains & Routes → Add → Custom domain*, ví dụ `bangtin.tenmien.vn`.
 
 ## Cập nhật dữ liệu hàng tuần
-1. Nhập dữ liệu tuần mới vào `Bang tin an toan - Du lieu.xlsx` trong OneDrive (thư mục *Bang tin an toan hang tuan*), lưu file.
+1. Nhập dữ liệu tuần mới vào file gốc `Bang tin an toan hang tuan.xlsx` trong OneDrive (thư mục *Bang tin an toan hang tuan*): thêm khối Tuần mới ngay dưới tuần trước, lưu file.
 2. Nhắn Claude: “cập nhật bảng tin lên web”. Claude chép file Excel vào `web/data/bangtin.xlsx` và đẩy lên GitHub → Cloudflare tự triển khai lại trong khoảng 1 phút.
    (Hoặc tự làm: trên GitHub mở `web/data/` → *Add file → Upload files* → tải file Excel lên, đặt tên `bangtin.xlsx`.)
 
