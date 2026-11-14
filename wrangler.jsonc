@@ -1,0 +1,9 @@
+{
+  // Web Bảng tin An toàn Vệ sinh Lao động - Xưởng Phụ Trợ (trang tĩnh trong thư mục web/, không cần đăng nhập)
+  "name": "bangtinantoan-xpt",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./web",
+    "not_found_handling": "single-page-application"
+  }
+}
