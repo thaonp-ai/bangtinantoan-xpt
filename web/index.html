@@ -380,7 +380,7 @@ function buildFromWide(sheets){
     const find=f=>{for(const c of [...cols].sort((a,b)=>a-b))if(f(lab[c]||""))return c;return -1;};
     const C={w:find(x=>x==="tuan"),y:find(x=>x==="nam"),
       gp:find(x=>x.includes("gplv")&&!x.includes("khong")),gpk:find(x=>x.includes("gplv")&&x.includes("khong")),
-      dct:find(x=>x.startsWith("dntd")&&x.includes("chutri")),dlq:find(x=>x.startsWith("dntd")&&x.includes("lienquan")),dn:find(x=>x==="dntd"||x==="sohosodntd"),
+      dct:find(x=>x.includes("chutri")),dlq:find(x=>x.includes("lienquan")),dn:find(x=>x==="dntd"||x==="sohosodntd"),
       sc:find(x=>x==="suco"||x==="sosuco"),nm:find(x=>x.startsWith("nearmiss")),
       at:find(x=>x.includes("theantoan")),kpn:find(x=>x.includes("khacphucngay")),cho:find(x=>x.includes("chokhacphuc")),
       rule:find(x=>x.startsWith("quydinh")),iss:find(x=>x.startsWith("tondong")),act:find(x=>x.startsWith("hanhdong")),
@@ -522,7 +522,7 @@ function render(){
 
   const kp=`<div class="kpis">
     <div class="kgrp ptw"><div class="gh">📄 GIẤY PHÉP PTW</div><div class="gb">${kpi("Số giấy phép",wk.gp,cum("gp"),"GP")}${kpi("Không tuân thủ",wk.gpk,cum("gpk"),"GP",true)}</div></div>
-    <div class="kgrp dn"><div class="gh">🗂 SỐ HỒ SƠ ĐNTĐ</div><div class="gb"${M.dnSingle?' style="grid-template-columns:1fr"':""}>${M.dnSingle?kpi("Số hồ sơ ĐNTĐ",wk.dct,cum("dct"),"hồ sơ"):kpi("ĐNTĐ chủ trì",wk.dct,cum("dct"),"hồ sơ")+kpi("ĐNTĐ liên quan",wk.dlq,cum("dlq"),"hồ sơ")}</div></div>
+    <div class="kgrp dn"><div class="gh">🗂 SỐ HỒ SƠ ĐNTĐ</div><div class="gb">${kpi("ĐNTĐ chủ trì",wk.dct,cum("dct"),"hồ sơ")+kpi("ĐNTĐ liên quan",wk.dlq,cum("dlq"),"hồ sơ")}</div></div>
     <div class="kgrp sc"><div class="gh">⚠ SỰ CỐ / NEARMISS</div><div class="gb">${kpi("Số sự cố",wk.sc,cum("sc"),"vụ",true)}${kpi("Nearmiss",wk.nm,cum("nm"),"vụ",true)}</div></div></div>`;
   const mx=Math.max(1,wk.at,wk.kpn,wk.cho);
   const hb=(l,v,col)=>`<div class="hbar"><div class="lab">${l}</div><div class="track"><div class="fill" style="width:${Math.max(v/mx*100,v?12:0)}%;background:${col}">${v?fmtN(v)+" thẻ":""}</div>${v?"":`<span style="position:absolute;left:8px;top:0;font-size:10.5px;color:#6B7C7C;line-height:16px">0 thẻ</span>`}</div></div>`;
