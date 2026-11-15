@@ -8,7 +8,7 @@ Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Work
 - Không sửa nội dung Excel của người dùng khi chỉ cập nhật dữ liệu.
 
 ## Cấu trúc Excel (file gốc, 1 sheet, mỗi tuần một khối dòng)
-- Dòng 2–3 là tiêu đề (gộp ô): Tuần | GPLV (Số GPLV, Số GPLV không tuân thủ) | ĐNTD chủ trì | ĐNTD liên quan (từ Tuần 46) | Sự cố | Nearmiss | Số thẻ STOP (an toàn, KAT khắc phục ngay, KAT chờ khắc phục) | Quy định an toàn | Tồn đọng | Hành động khắc phục | Giải pháp và đề xuất | Biểu dương | Các công việc lưu ý tuần tới.
+- Dòng 2–3 là tiêu đề (gộp ô): Tuần | GPLV (Số GPLV, Số GPLV không tuân thủ) | ĐNTĐ chủ trì | ĐNTĐ liên quan (từ Tuần 46) | Sự cố | Nearmiss | Số thẻ STOP (an toàn, KAT khắc phục ngay, KAT chờ khắc phục) | Quy định an toàn | Tồn đọng | Hành động khắc phục | Giải pháp và đề xuất | Biểu dương | Các công việc lưu ý tuần tới.
 - Mỗi tuần: số tuần + số liệu ở dòng đầu khối (ô gộp), các danh sách mỗi mục một dòng; tuần mới thêm ngay dưới tuần trước. Web nhận cột theo tên tiêu đề (không phân biệt dấu), `buildFromWide()` trong index.html.
 - Ô Hành động khắc phục có mà Tồn đọng trống → nối vào tồn đọng phía trên. Ảnh nổi gắn vào tồn đọng cùng dòng/dòng trên gần nhất trong khối (ảnh ở cột Biểu dương → biểu dương); ảnh lấn lên dòng tiêu đề tính vào dòng dữ liệu đầu tiên.
 - Không có cột Năm: năm lấy `MAC_DINH.year`, tự tăng khi số tuần quay về nhỏ hơn. Web luôn hiển thị 2 ô "ĐNTĐ chủ trì" / "ĐNTĐ liên quan" (người dùng yêu cầu 15/11/2026): cột có tiêu đề chứa "chủ trì" / "liên quan" (dòng 3, dưới nhóm ĐNTĐ). Nếu Excel còn 1 cột "ĐNTD" cũ thì số đó tính là chủ trì, liên quan = 0.
