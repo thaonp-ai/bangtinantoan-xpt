@@ -361,7 +361,7 @@ function readList(sh,fields){
    - open: lũy tiến đầu kỳ (chưa rõ tuần phát sinh). */
 const MAC_DINH={
   cfg:{title:"BẢNG TIN AN TOÀN VỆ SINH LAO ĐỘNG",unit:"XƯỞNG PHỤ TRỢ",s1t:"KỸ THUẬT VIÊN AN TOÀN",s1:"Trần Việt Phúc",s2t:"QUẢN ĐỐC XƯỞNG PHỤ TRỢ",s2:"Lê Hậu Khiết",
-    msgT:"THÔNG ĐIỆP CHỈ ĐẠO CỦA QUẢN ĐỐC XƯỞNG PHỤ TRỢ",msg:"\"AN TOÀN LÀ TRÊN HẾT - KHÔNG CÓ VIỆC GÌ CẤP BÁCH ĐẾN MỨC PHẢI LÀM MẤT AN TOÀN! Toàn xưởng sẵn sàng khởi động tuần mới an toàn, chất lượng và hiệu quả.\"",nWeeks:12},
+    msgT:"THÔNG ĐIỆP CHỈ ĐẠO CỦA QUẢN ĐỐC XƯỞNG PHỤ TRỢ",msg:"\"AN TOÀN LÀ TRÊN HẾT - KHÔNG CÓ VIỆC GÌ CẤP BÁCH ĐẾN MỨC PHẢI LÀM MẤT AN TOÀN! Toàn xưởng sẵn sàng khởi động tuần mới an toàn, chất lượng và hiệu quả.\"",nWeeks:4},
   year:2026,
   open:{y:2026,gp:0,gpk:2,dct:0,dlq:0,sc:1,nm:0,at:0,kpn:0,cho:0},
   // [tuần, GPLV, thẻ an toàn, KAT khắc phục ngay, KAT chờ khắc phục]
@@ -451,7 +451,7 @@ function buildModel(sheets){
   return{
     cfg:{title:C("Tiêu đề bảng tin","BẢNG TIN AN TOÀN VỆ SINH LAO ĐỘNG"),unit:C("Tên đơn vị","XƯỞNG PHỤ TRỢ"),
       s1t:C("Chức danh người ký 1","KỸ THUẬT VIÊN AN TOÀN"),s1:C("Người ký 1",""),s2t:C("Chức danh người ký 2","QUẢN ĐỐC XƯỞNG"),s2:C("Người ký 2",""),
-      msgT:C("Tiêu đề thông điệp","THÔNG ĐIỆP CHỈ ĐẠO CỦA QUẢN ĐỐC"),msg:C("Thông điệp mặc định",""),nWeeks:Math.max(4,Math.min(26,num(C("Số tuần hiển thị trên biểu đồ",12))||12))},
+      msgT:C("Tiêu đề thông điệp","THÔNG ĐIỆP CHỈ ĐẠO CỦA QUẢN ĐỐC"),msg:C("Thông điệp mặc định",""),nWeeks:Math.max(2,Math.min(26,num(C("Số tuần hiển thị trên biểu đồ",4))||4))},
     weeks,open,
     rules:L(["QuyDinh","Quy định"],{t:["Nội dung"]}),
     issues:L(["TonDong","Tồn đọng"],{t:["Tồn đọng"],a:["Hành động khắc phục"]}),
@@ -477,24 +477,24 @@ function kpi(name,v,cum,unit,alert){
 
 function barChart(data,curKey){
   const W=330,H=150,pl=6,pr=6,pt=16,pb=20,n=data.length;const max=Math.max(1,...data.map(d=>d.v));
-  const bw=(W-pl-pr)/n;let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Số giấy phép theo tuần">`;
+  const bw=(W-pl-pr)/Math.max(n,4);const off=(W-pl-pr-bw*n)/2;let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Số giấy phép theo tuần">`;
   for(let i=0;i<=3;i++){const y=pt+(H-pt-pb)*i/3;s+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="#E3ECEC" stroke-width="0.8"/>`;}
-  data.forEach((d,i)=>{const h=(H-pt-pb)*d.v/max,x=pl+i*bw+bw*0.17,w=bw*0.66,y=H-pb-h;const cur=d.key===curKey;
+  data.forEach((d,i)=>{const h=(H-pt-pb)*d.v/max,x=pl+off+i*bw+bw*0.22,w=bw*0.56,y=H-pb-h;const cur=d.key===curKey;
     s+=`<rect x="${x}" y="${y}" width="${w}" height="${Math.max(h,0.5)}" rx="3" fill="${cur?"#2F6F70":"#8CC3C3"}"/>`;
     s+=`<text x="${x+w/2}" y="${y-4}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${cur?"#1F4F50":"#4D6666"}">${d.v}</text>`;
-    s+=`<text x="${x+w/2}" y="${H-6}" text-anchor="middle" font-size="9" font-weight="${cur?800:500}" fill="${cur?"#1F4F50":"#6B7C7C"}">T${d.w}</text>`;});
+    s+=`<text x="${x+w/2}" y="${H-6}" text-anchor="middle" font-size="9.5" font-weight="${cur?800:500}" fill="${cur?"#1F4F50":"#6B7C7C"}">Tuần ${d.w}</text>`;});
   s+=`<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="#B9CDCD"/>`;
   return s+"</svg>";
 }
 function stackChart(data,curKey){
   const W=330,H=150,pl=6,pr=6,pt=16,pb=20,n=data.length;const max=Math.max(1,...data.map(d=>d.at+d.kpn+d.cho));
-  const bw=(W-pl-pr)/n;const cols=[["at","#009D48"],["kpn","#F2A33A"],["cho","#D9432F"]];
+  const bw=(W-pl-pr)/Math.max(n,4);const off=(W-pl-pr-bw*n)/2;const cols=[["at","#009D48"],["kpn","#F2A33A"],["cho","#D9432F"]];
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Số thẻ STOP theo tuần">`;
   for(let i=0;i<=3;i++){const y=pt+(H-pt-pb)*i/3;s+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="#E3ECEC" stroke-width="0.8"/>`;}
-  data.forEach((d,i)=>{const x=pl+i*bw+bw*0.17,w=bw*0.66;let y=H-pb;const cur=d.key===curKey;const tot=d.at+d.kpn+d.cho;
-    cols.forEach(([k,c],j)=>{const h=(H-pt-pb)*d[k]/max;if(h<=0)return;y-=h;s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"${j<2?' stroke="#fff" stroke-width="0.6"':""}/>`;});
-    s+=`<text x="${x+w/2}" y="${y-4}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${cur?"#1F4F50":"#4D6666"}">${tot}</text>`;
-    s+=`<text x="${x+w/2}" y="${H-6}" text-anchor="middle" font-size="9" font-weight="${cur?800:500}" fill="${cur?"#1F4F50":"#6B7C7C"}">T${d.w}</text>`;
+  data.forEach((d,i)=>{const x=pl+off+i*bw+bw*0.22,w=bw*0.56;let y=H-pb;const cur=d.key===curKey;const tot=d.at+d.kpn+d.cho;
+    cols.forEach(([k,c],j)=>{const h=(H-pt-pb)*d[k]/max;if(h<=0)return;y-=h;s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"${j<2?' stroke="#fff" stroke-width="0.6"':""}/>`;if(h>=11)s+=`<text x="${x+w/2}" y="${y+h/2+3}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff">${d[k]}</text>`;});
+    s+=`<text x="${x+w/2}" y="${y-4}" text-anchor="middle" font-size="10" font-weight="800" fill="${cur?"#1F4F50":"#4D6666"}">${tot}</text>`;
+    s+=`<text x="${x+w/2}" y="${H-6}" text-anchor="middle" font-size="9.5" font-weight="${cur?800:500}" fill="${cur?"#1F4F50":"#6B7C7C"}">Tuần ${d.w}</text>`;
     if(cur)s+=`<rect x="${x-2}" y="${y-15}" width="${w+4}" height="${H-pb-y+15}" fill="none" stroke="#2F6F70" stroke-dasharray="2 2" rx="3"/>`;});
   s+=`<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="#B9CDCD"/>`;
   return s+"</svg>";
@@ -532,13 +532,13 @@ function render(){
     <div class="scard c-kp"><div class="h">⚡ Khắc phục ngay</div><div class="r"><span>Tuần này: <b>${fmtN(wk.kpn)}</b></span><span>Lũy tiến: <b>${fmtN(cum("kpn"))}</b></span></div></div>
     <div class="scard c-ch"><div class="h">⏳ Chờ khắc phục</div><div class="r"><span>Tuần này: <b>${fmtN(wk.cho)}</b></span><span>Lũy tiến: <b>${fmtN(cum("cho"))}</b></span></div></div></div></div></div>`;
   const tiles=(f,u)=>`<div class="tiles">${last4.map(x=>`<div class="tile${x.key===wk.key?" cur":""}">T${x.w}<b>${fmtN(f(x))} ${u}</b></div>`).join("")}</div>`;
-  const charts=`<div class="sec-h" style="margin-top:14px"><h2 style="font-size:12.5px">📊 Biểu đồ số giấy phép &amp; số thẻ STOP theo tuần</h2></div><div class="charts">
+  const charts=`<div class="sec-h" style="margin-top:14px"><h2 style="font-size:12.5px">📊 Biểu đồ số giấy phép &amp; số thẻ STOP – ${hist.length} tuần gần nhất</h2></div><div class="charts">
     <div class="chart"><div class="ch">Số giấy phép (PTW) theo tuần<span class="tw">Tuần này: ${fmtN(wk.gp)} GP</span></div>
       <div class="legend"><span><i style="background:#8CC3C3"></i>Số GP phát hành / tuần</span><span><i style="background:#2F6F70"></i>Tuần hiện tại</span></div>
-      ${barChart(hist.map(x=>({key:x.key,w:x.w,v:x.gp})),wk.key)}${tiles(x=>x.gp,"GP")}</div>
+      ${barChart(hist.map(x=>({key:x.key,w:x.w,v:x.gp})),wk.key)}</div>
     <div class="chart"><div class="ch">Số thẻ STOP theo tuần<span class="tw">Tuần này: ${fmtN(tot)} thẻ</span></div>
       <div class="legend"><span><i style="background:#009D48"></i>An toàn</span><span><i style="background:#F2A33A"></i>Khắc phục ngay</span><span><i style="background:#D9432F"></i>Chờ khắc phục</span></div>
-      ${stackChart(hist,wk.key)}${tiles(x=>x.at+x.kpn+x.cho,"thẻ")}</div></div>`;
+      ${stackChart(hist,wk.key)}</div></div>`;
   const s1=sec("I","Tổng hợp số liệu an toàn trong tuần",`Cập nhật: ${fmtD(wk.upd)}`,kp+stop+charts);
 
   const rules=forWeek(M.rules,y,w);
