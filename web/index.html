@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bảng Tin An Toàn Vệ Sinh Lao Động</title>
+<script>if(location.protocol!=="file:")document.documentElement.classList.add("hosted");</script>
 <style>
 :root{
   --teal:#549B9C; --teal-d:#2F6F70; --teal-dd:#1F4F50; --teal-l:#E6F2F2; --teal-ll:#F3F9F9;
@@ -42,6 +43,9 @@ body.dragging .drop-hint{display:flex}
 .empty h2{color:var(--teal-d);margin:0 0 8px}
 .empty ol{text-align:left;display:inline-block;margin:16px auto 0;line-height:1.9;color:var(--ink)}
 
+.loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:120px 20px;color:var(--teal-d);font-weight:600}
+.spin{width:34px;height:34px;border-radius:50%;border:4px solid var(--teal-l);border-top-color:var(--teal);animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 /* ---------- header ---------- */
 .hdr{display:grid;grid-template-columns:110px 1fr 140px;align-items:center;gap:10px;padding-bottom:12px;border-bottom:3px solid var(--teal);position:relative}
 .hdr:after{content:"";position:absolute;left:0;bottom:-3px;width:90px;height:3px;background:var(--orange)}
@@ -150,7 +154,7 @@ table.td td.act{border-left:3px solid var(--orange-l)}
 .sign .nm{font-weight:800;font-size:13px;color:var(--navy)}
 .foot{margin-top:14px;font-size:9.5px;color:var(--muted);text-align:center}
 
-body.viewer #btnOpen,body.viewer #btnReconnect,body.viewer #btnReload,body.viewer #autoWrap,body.viewer .drop-hint{display:none!important}
+html.hosted:not(.local) #btnOpen,html.hosted:not(.local) #autoWrap,body.viewer #btnOpen,body.viewer #btnReconnect,body.viewer #btnReload,body.viewer #autoWrap,body.viewer .drop-hint{display:none!important}
 .btn:disabled{opacity:.7;cursor:wait}
 body.pdf-mode .sheet{box-shadow:none;border-radius:0}
 /* ---------- print ---------- */
@@ -500,9 +504,10 @@ function stackChart(data,curKey){
   return s+"</svg>";
 }
 
-let MODEL=null,CUR=null;const HOSTED=location.protocol!=="file:";let VIEWER=false;
+let MODEL=null,CUR=null;const HOSTED=location.protocol!=="file:";let VIEWER=HOSTED,LOADING=HOSTED;if(HOSTED)document.body.classList.add("viewer");
 function render(){
   const el=$("sheet");
+  if((!MODEL||!MODEL.weeks.length)&&LOADING){el.innerHTML=`<div class="loading"><div class="spin"></div><div>Đang tải bảng tin…</div></div>`;return;}
   if(!MODEL||!MODEL.weeks.length){el.innerHTML=`<div class="empty"><img src="${LOGO_PM}" style="height:56px"><h2>Bảng tin An toàn Vệ sinh Lao động</h2>
     <div>Chưa có dữ liệu. Hãy mở file Excel dữ liệu để hiển thị bảng tin.</div>
     <ol><li>Bấm <b>📂 Mở file Excel</b> và chọn file <i>Bang tin an toan - Du lieu.xlsx</i> (hoặc kéo-thả file vào trang).</li>
@@ -651,18 +656,21 @@ addEventListener("drop",async e=>{e.preventDefault();if(VIEWER)return;dc=0;docum
   const f=e.dataTransfer.files[0];if(f){followLatest=true;await loadBuffer(await f.arrayBuffer(),f.name);}});
 
 (async function init(){
+  if(HOSTED)setStatus("Đang tải dữ liệu bảng tin…");
   render();
   const src=new URLSearchParams(location.search).get("src");
-  if(src){try{const r=await fetch(src,{cache:"no-store"});await loadBuffer(await r.arrayBuffer(),decodeURIComponent(src.split("/").pop()),{save:false});
+  if(src){LOADING=false;try{const r=await fetch(src,{cache:"no-store"});await loadBuffer(await r.arrayBuffer(),decodeURIComponent(src.split("/").pop()),{save:false});
     const wq=new URLSearchParams(location.search).get("tuan");if(wq&&MODEL){const x=MODEL.weeks.find(k=>k.w===+wq);if(x){CUR=x.key;fillWeeks();render();}}return;}catch(e){setStatus("Không tải được "+src+": "+e.message,"err");}}
   if(HOSTED){try{let buf=null;
       for(const p of ["data/bangtin.xlsx","data.xlsx"]){try{const r=await fetch(p+"?v="+Date.now(),{cache:"no-store"});if(r.ok){const b=await r.arrayBuffer();if(new Uint8Array(b)[0]===0x50){buf=b;break;}}}catch(e){}}
       if(!buf)try{await loadScript("data.js?v="+Date.now());}catch(e){}
       if(buf){}else if(window.DATA_XLSX_B64){const bin=atob(window.DATA_XLSX_B64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);buf=u.buffer;}
       
+      LOADING=false;
       if(buf){VIEWER=true;document.body.classList.add("viewer");
       if(await loadBuffer(buf,"data.xlsx",{save:false})){applyHash();const L=MODEL.weeks[MODEL.weeks.length-1];
         setStatus(`Dữ liệu mới nhất: Tuần ${L.w}/${L.y} — chọn tuần để xem các bảng tin trước.`);}return;}}catch(e){}}
+  if(HOSTED){LOADING=false;VIEWER=false;document.body.classList.remove("viewer");document.documentElement.classList.add("local");render();}
   const buf=await IDB.get("buf"),nm=await IDB.get("name");
   if(buf){await loadBuffer(buf,nm,{save:false});setStatus(`Đang hiển thị dữ liệu đã lưu lần trước (“${nm}”). Bấm “Kết nối lại” hoặc “Mở file Excel” để cập nhật.`,"warn");}
   const h=await IDB.get("handle");
