@@ -368,7 +368,8 @@ const MAC_DINH={
   cfg:{title:"BẢNG TIN AN TOÀN VỆ SINH LAO ĐỘNG",unit:"XƯỞNG PHỤ TRỢ",s1t:"KỸ THUẬT VIÊN AN TOÀN",s1:"Trần Việt Phúc",s2t:"QUẢN ĐỐC XƯỞNG PHỤ TRỢ",s2:"Lê Hậu Khiết",
     msgT:"THÔNG ĐIỆP CHỈ ĐẠO CỦA QUẢN ĐỐC XƯỞNG PHỤ TRỢ",msg:"\"AN TOÀN LÀ TRÊN HẾT - KHÔNG CÓ VIỆC GÌ CẤP BÁCH ĐẾN MỨC PHẢI LÀM MẤT AN TOÀN! Toàn xưởng sẵn sàng khởi động tuần mới an toàn, chất lượng và hiệu quả.\"",nWeeks:4},
   year:2026,
-  open:{y:2026,gp:0,gpk:2,dct:0,dlq:0,sc:1,nm:0,at:0,kpn:0,cho:0},
+  // Lũy tiến năm tính đến hết tuần mốc (người dùng cung cấp 15/11/2026). Các tuần sau = lũy tiến tuần trước + số liệu tuần đó.
+  anchor:{y:2026,w:46,gp:2292,gpk:2,dct:7,dlq:7,sc:7,nm:1,at:2949,kpn:1405,cho:664},
   // [tuần, GPLV, thẻ an toàn, KAT khắc phục ngay, KAT chờ khắc phục]
   weeks:[[34,67,22,13,1],[35,77,16,24,3],[36,27,28,9,1],[37,62,33,14,2],[38,54,57,9,1],[39,38,12,10,4],[40,48,53,35,3],[41,42,28,25,2],[42,64,59,30,13],[43,60,49,17,17],[44,48,60,17,12]]
 };
@@ -428,7 +429,10 @@ function buildFromWide(sheets){
   for(const b of blocks)map[b.y*100+b.w]=b;
   const weeks=Object.values(map).map(x=>{const mon=isoMonday(x.y,x.w),sun=new Date(mon.getTime()+6*864e5);return{...x,key:x.y*100+x.w,from:mon,to:sun,upd:sun};}).sort((a,b)=>a.key-b.key);
   const all=k=>blocks.flatMap(b=>b[k]);
-  return{dnSingle,cfg:{...MAC_DINH.cfg},weeks,open:{...MAC_DINH.open},rules:all("rules"),issues:all("issues"),sols:all("sols"),praise:all("praise"),next:all("next")};
+  // lũy tiến đầu kỳ = số mốc − tổng các tuần đã có dữ liệu (cùng năm, ≤ tuần mốc)
+  const A=MAC_DINH.anchor,open={y:A.y};
+  for(const k of ["gp","gpk","dct","dlq","sc","nm","at","kpn","cho"])open[k]=A[k]-weeks.filter(x=>x.y===A.y&&x.w<=A.w).reduce((t,x)=>t+(x[k]||0),0);
+  return{dnSingle,cfg:{...MAC_DINH.cfg},weeks,open,rules:all("rules"),issues:all("issues"),sols:all("sols"),praise:all("praise"),next:all("next")};
 }
 
 function buildModel(sheets){

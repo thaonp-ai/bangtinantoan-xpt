@@ -13,8 +13,8 @@ Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Work
 - Dữ liệu trong Excel hiện có Tuần 42–46/2026 (Tuần 42–44 nhập từ PDF cũ ngày 15/11/2026, đã sửa chính tả). Cột Q:R tiêu đề "Ảnh hiện trạng", cột S "Ảnh sau khắc phục": ảnh đặt ở cột nào thì web hiểu theo tiêu đề cột đó (ô gộp → lấy tiêu đề cột gần nhất bên trái); ảnh ở cột Hành động/“sau khắc phục” hiển thị ở ô Hành động khắc phục.
 - Ô Hành động khắc phục có mà Tồn đọng trống → nối vào tồn đọng phía trên. Ảnh nổi gắn vào tồn đọng cùng dòng/dòng trên gần nhất trong khối (ảnh ở cột Biểu dương → biểu dương); ảnh lấn lên dòng tiêu đề tính vào dòng dữ liệu đầu tiên.
 - Không có cột Năm: năm lấy `MAC_DINH.year`, tự tăng khi số tuần quay về nhỏ hơn. Web luôn hiển thị 2 ô "ĐNTĐ chủ trì" / "ĐNTĐ liên quan" (người dùng yêu cầu 15/11/2026): cột có tiêu đề chứa "chủ trì" / "liên quan" (dòng 3, dưới nhóm ĐNTĐ). Nếu Excel còn 1 cột "ĐNTD" cũ thì số đó tính là chủ trì, liên quan = 0.
-- Hằng `MAC_DINH` trong index.html: người ký, thông điệp, số liệu T34–T44/2026 (lấy từ PDF Tuần 45, để vẽ biểu đồ/lũy tiến; tuần có trong Excel thì Excel thắng), lũy tiến đầu kỳ (2 GP không tuân thủ, 1 sự cố). Đổi người ký/thông điệp: sửa `MAC_DINH.cfg` ở cả hai bản HTML.
-- Lũy tiến = tổng các tuần cùng năm ≤ tuần đang xem + lũy tiến đầu kỳ.
+- Hằng `MAC_DINH` trong index.html: người ký, thông điệp, số liệu T34–T44/2026 (lấy từ PDF Tuần 45, để vẽ biểu đồ/lũy tiến; tuần có trong Excel thì Excel thắng), `MAC_DINH.anchor` = lũy tiến năm tính đến hết Tuần 46/2026 do người dùng cung cấp 15/11/2026 (GPLV 2292, không tuân thủ 2, ĐNTĐ chủ trì 7, liên quan 7, sự cố 7, nearmiss 1, thẻ an toàn 2949, KAT khắc phục ngay 1405, chờ khắc phục 664). Lũy tiến đầu kỳ tự tính = mốc − tổng các tuần có dữ liệu ≤ tuần mốc, nên tuần sau = lũy tiến tuần trước + số tuần đó. Sang năm mới cần mốc mới (hoặc đặt mốc = 0). Đổi người ký/thông điệp: sửa `MAC_DINH.cfg` ở cả hai bản HTML.
+- Lũy tiến = tổng các tuần cùng năm ≤ tuần đang xem + lũy tiến đầu kỳ (suy ra từ mốc).
 - Web vẫn đọc được định dạng nhiều sheet (CauHinh/SoLieuTuan/...) nếu sau này dùng.
 
 ## Giao diện
