@@ -468,7 +468,8 @@ function buildModel(sheets){
 /* ================= rendering ================= */
 function rich(s){
   const ls=String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  return `<div class="txt">${ls.map(l=>/^[-•+*]\s*/.test(l)?`<p class="ln bl">${esc(l.replace(/^[-•+*]\s*/,""))}</p>`:`<p class="ln">${esc(l)}</p>`).join("")}</div>`;
+  const one=ls.length===1;
+  return `<div class="txt">${ls.map(l=>!one&&/^[-•+*]\s*/.test(l)?`<p class="ln bl">${esc(l.replace(/^[-•+*]\s*/,""))}</p>`:`<p class="ln">${esc(one?l.replace(/^[-•+*]\s*/,""):l)}</p>`).join("")}</div>`;
 }
 const sec=(no,title,aside,body)=>`<section class="sec"><div class="sec-h"><span class="chip">MỤC ${no}</span><h2>${esc(title)}</h2>${aside?`<span class="aside">${aside}</span>`:""}</div>${body}</section>`;
 const emptyNote=t=>`<div class="empty-note">${esc(t)}</div>`;
