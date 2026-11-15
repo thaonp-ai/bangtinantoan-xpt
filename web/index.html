@@ -412,8 +412,8 @@ function buildFromWide(sheets){
       if(t("nx"))cur.next.push({_row:r,y:cur.y,w:cur.w,t:t("nx"),images:[]});
     }
     // ảnh: gắn vào mục cùng dòng (hoặc dòng trên gần nhất) trong khối tuần; ảnh ở cột Biểu dương -> biểu dương
-    for(const im of sh.images){
-      if(im.row<=hr+1)continue;
+    for(const im0 of sh.images){
+      const im={...im0,row:Math.max(im0.row,hr+2)}; // ảnh lấn lên dòng tiêu đề -> tính vào dòng dữ liệu đầu tiên
       let b=null;for(const x of blocks)if(x.first<=im.row)b=x;if(!b)continue;
       const list=(C.pr>=0&&im.col===C.pr&&b.praise.length)?b.praise:b.issues;if(!list.length)continue;
       let it=list[0];for(const x of list)if(x._row<=im.row)it=x;it.images.push(im.url);
