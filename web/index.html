@@ -134,6 +134,7 @@ table.td td.stt{width:38px;text-align:center;font-weight:800;color:var(--teal-d)
 table.td td.act{border-left:3px solid var(--orange-l)}
 .photos{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .photos .ph-l{width:100%;font-size:10.5px;font-weight:700;color:var(--orange)}
+.photos .ph-l.ok{color:var(--green)}
 .photos img{max-height:150px;max-width:260px;border-radius:6px;border:1px solid var(--line);object-fit:contain;background:#f6f6f6}
 
 /* praise */
@@ -415,8 +416,10 @@ function buildFromWide(sheets){
     for(const im0 of sh.images){
       const im={...im0,row:Math.max(im0.row,hr+2)}; // ảnh lấn lên dòng tiêu đề -> tính vào dòng dữ liệu đầu tiên
       let b=null;for(const x of blocks)if(x.first<=im.row)b=x;if(!b)continue;
-      const list=(C.pr>=0&&im.col===C.pr&&b.praise.length)?b.praise:b.issues;if(!list.length)continue;
-      let it=list[0];for(const x of list)if(x._row<=im.row)it=x;it.images.push(im.url);
+      let hl="";for(let c=im.col;c>=0;c--){if(lab[c]){hl=lab[c];break;}} // tiêu đề cột nơi đặt ảnh (lấy cột gần nhất bên trái nếu ô gộp)
+      const isPr=hl.startsWith("bieuduong")&&b.praise.length, isAfter=hl.includes("saukhacphuc")||hl.startsWith("hanhdong");
+      const list=isPr?b.praise:b.issues;if(!list.length)continue;
+      let it=list[0];for(const x of list)if(x._row<=im.row)it=x;(isAfter&&!isPr?(it.after=it.after||[]):it.images).push(im.url);
     }
   }
   if(!found)return null;
@@ -552,7 +555,7 @@ function render(){
 
   const iss=forWeek(M.issues,y,w);
   const s3=sec("III","Các mục tồn đọng và hành động khắc phục",`Tổng cộng: ${iss.length} điểm tồn đọng`,iss.length?`<table class="td"><thead><tr><th style="width:38px">STT</th><th>Tồn đọng</th><th style="width:44%">Hành động khắc phục</th></tr></thead><tbody>
-    ${iss.map((r,i)=>`<tr><td class="stt">${i+1}</td><td>${rich(r.t)}${r.images.length?`<div class="photos"><span class="ph-l">📷 Ảnh hiện trạng:</span>${r.images.map(u=>`<img src="${u}" alt="Ảnh hiện trạng">`).join("")}</div>`:""}</td><td class="act">${rich(r.a)}</td></tr>`).join("")}</tbody></table>`:emptyNote("Không có tồn đọng trong tuần."));
+    ${iss.map((r,i)=>`<tr><td class="stt">${i+1}</td><td>${rich(r.t)}${r.images.length?`<div class="photos"><span class="ph-l">📷 Ảnh hiện trạng${r.images.length>1?` (${r.images.length} ảnh)`:""}:</span>${r.images.map(u=>`<img src="${u}" alt="Ảnh hiện trạng">`).join("")}</div>`:""}</td><td class="act">${rich(r.a)}${r.after&&r.after.length?`<div class="photos"><span class="ph-l ok">✅ Ảnh sau khắc phục:</span>${r.after.map(u=>`<img src="${u}" alt="Ảnh sau khắc phục">`).join("")}</div>`:""}</td></tr>`).join("")}</tbody></table>`:emptyNote("Không có tồn đọng trong tuần."));
 
   const sols=forWeek(M.sols,y,w);
   const s4=sec("IV","Giải pháp và đề xuất an toàn",sols.length?`${sols.length} giải pháp &amp; cải tiến`:"",sols.length?`<div class="nlist sol">${sols.map((r,i)=>`<div class="nitem"><span class="no">${i+1}</span>${rich(r.t)}</div>`).join("")}</div>`:emptyNote("Chưa có giải pháp/đề xuất cho tuần này."));
