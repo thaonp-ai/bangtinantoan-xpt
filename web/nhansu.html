@@ -210,8 +210,8 @@ th.num{text-align:right}
       <div class="card"><div class="chead"><div><h3><span class="bar"></span>Biểu đồ phân bố số năm làm việc</h3><p class="desc" id="senDesc"></p></div><div class="seg" id="senMode"><button class="on" data-m="band">Theo dải</button><button data-m="cum">Lũy kế</button></div></div><div class="chartbox"><canvas id="cSen"></canvas></div></div>
     </div>
     <div class="grid2">
-      <div class="card"><h3><span class="bar"></span>Lộ trình nghỉ hưu</h3><p class="desc">Số nhân sự đến tuổi nghỉ hưu trong N năm tới (lũy kế), theo tuổi nghỉ hưu ghi trong hồ sơ.</p><div class="glist" id="retList"></div></div>
-      <div class="card"><h3><span class="bar"></span>Biểu đồ dự báo nghỉ hưu</h3><p class="desc">Lũy kế số người nghỉ hưu tính từ năm đang xem.</p><div class="chartbox"><canvas id="cRet"></canvas></div></div>
+      <div class="card"><h3><span class="bar"></span>Lộ trình nghỉ hưu</h3><p class="desc" id="retListDesc"></p><div class="glist" id="retList"></div><div class="note" id="retNote"></div></div>
+      <div class="card"><div class="chead"><div><h3><span class="bar"></span>Biểu đồ dự báo nghỉ hưu</h3><p class="desc" id="retDesc"></p></div><div class="seg" id="retMode"><button class="on" data-m="band">Theo giai đoạn</button><button data-m="cum">Lũy kế</button></div></div><div class="chartbox"><canvas id="cRet"></canvas></div></div>
     </div>
   </section>
 
@@ -320,12 +320,17 @@ const SEN_G = [
   {k:"s5",l:"21 – 25 năm",s:"Gắn bó từ đầu",t:y=>y>=21&&y<=25,cum:"≤ 25 năm",c:y=>y<=25},
   {k:"s6",l:"Trên 25 năm",s:"",t:y=>y>25,cum:"Tất cả",c:y=>true}];
 const RET_G = [5,10,15,20,25,30];
+const RET_S = [{lo:-99,hi:5},{lo:6,hi:10},{lo:11,hi:15},{lo:16,hi:20},{lo:21,hi:25},{lo:26,hi:30},{lo:31,hi:999}];
+const retSL = g => g.lo<0?"Trong 5 năm tới":g.hi>100?"Sau 30 năm":`Từ ${g.lo} – ${g.hi} năm tới`;
+const retSShort = g => g.lo<0?"≤ 5 năm":g.hi>100?"> 30 năm":`${g.lo}–${g.hi} năm`;
+const retSY = g => g.lo<0?`Đến năm ${S.year+5} (gồm cả người đã đủ tuổi)`:g.hi>100?`Sau năm ${S.year+30}`:`Năm ${S.year+g.lo} – ${S.year+g.hi}`;
+const inRetS = (r,g) => r.left>=g.lo && r.left<=g.hi;
 const COEF_G = [
   {l:"Dưới 3,00",t:c=>c<3},{l:"3,00 – 3,99",t:c=>c>=3&&c<4},{l:"4,00 – 4,99",t:c=>c>=4&&c<5},{l:"5,00 – 6,99",t:c=>c>=5&&c<7},{l:"Từ 7,00",t:c=>c>=7}];
 
 // ---------- state ----------
 const S = {rows:[], meta:{}, year:NOW, admin:false, db:null, ref:null, origRef:null, loaded:false,
-  tab:"overview", senMode:"band", grade:"ALL", sel:null, page:1, sort:{k:"id",d:1}, filters:{}};
+  tab:"overview", senMode:"band", retMode:"band", grade:"ALL", sel:null, page:1, sort:{k:"id",d:1}, filters:{}};
 const charts = {};
 
 // ---------- helpers ----------
@@ -424,16 +429,29 @@ function renderOverview(){
   const sd=cum?SEN_G.map(g=>R.filter(r=>g.c(r.sen))):sc;
   barChart("cSen",{labels:SEN_G.map(g=>cum?g.cum:g.l),data:sd.map(x=>x.length),color:C.aqua,onClick:i=>cum?showList(`Thâm niên ${SEN_G[i].cum}`,`năm ${S.year}`,sd[i].sort((a,b)=>a.sen-b.sen)):openSen(i),tip:(i,v)=>`${v} người · ${n?Math.round(v/n*100):0}%`});
   // retirement
-  const rc=RET_G.map(y=>R.filter(r=>r.left<=y));
-  $("retList").innerHTML=RET_G.map((y,i)=>gItem(C.red,`Trong ${y} năm tới`,`Đến năm ${S.year+y}`,rc[i].length,n,`data-ret="${i}"`)).join("");
-  barChart("cRet",{labels:RET_G.map(y=>`≤ ${y} năm`),data:rc.map(x=>x.length),color:C.red,onClick:openRet,tip:(i,v)=>`${v} người nghỉ hưu đến năm ${S.year+RET_G[i]}`});
+  const rcum=S.retMode==="cum";
+  $("retListDesc").textContent=rcum?"Số nhân sự đến tuổi nghỉ hưu trong N năm tới (lũy kế), theo tuổi nghỉ hưu trong hồ sơ.":"Số nhân sự đến tuổi nghỉ hưu trong từng giai đoạn 5 năm, theo tuổi nghỉ hưu trong hồ sơ.";
+  $("retDesc").textContent=rcum?"Lũy kế số người nghỉ hưu tính từ năm đang xem.":"Số người nghỉ hưu trong từng giai đoạn 5 năm, tính từ năm đang xem.";
+  if(rcum){
+    const rc=RET_G.map(y=>R.filter(r=>r.left<=y));
+    $("retList").innerHTML=RET_G.map((y,i)=>gItem(C.red,`Trong ${y} năm tới`,`Đến năm ${S.year+y}`,rc[i].length,n,`data-ret="${i}"`)).join("");
+    barChart("cRet",{labels:RET_G.map(y=>`≤ ${y} năm`),data:rc.map(x=>x.length),color:C.red,onClick:openRet,tip:(i,v)=>`${v} người nghỉ hưu đến năm ${S.year+RET_G[i]}`});
+  }else{
+    const rs=RET_S.map(g=>R.filter(r=>inRetS(r,g)));
+    $("retList").innerHTML=RET_S.map((g,i)=>gItem(C.red,retSL(g),retSY(g),rs[i].length,n,`data-rets="${i}"`)).join("");
+    barChart("cRet",{labels:RET_S.map(retSShort),data:rs.map(x=>x.length),color:C.red,onClick:openRetS,tip:(i,v)=>`${v} người · ${retSY(RET_S[i])}`});
+  }
+  const peak=RET_S.slice(0,6).map(g=>R.filter(r=>inRetS(r,g)).length);const pi=peak.indexOf(Math.max(...peak));
+  $("retNote").innerHTML=n?`Giai đoạn nghỉ hưu nhiều nhất: <b>${retSY(RET_S[pi]).replace(" (gồm cả người đã đủ tuổi)","")}</b> (${peak[pi]} người, ${Math.round(peak[pi]/n*100)}% xưởng) – cần chuẩn bị nhân sự kế cận trước giai đoạn này.`:"";
 }
 function openAge(i){const L=rowsD().filter(r=>AGE_G[i].t(r.age)).sort((a,b)=>b.age-a.age);showList(`Nhân sự nhóm tuổi: ${AGE_G[i].l}`,`năm ${S.year}`,L,{age:String(i)})}
 function openSen(i){const L=rowsD().filter(r=>SEN_G[i].t(r.sen)).sort((a,b)=>b.sen-a.sen);showList(`Nhân sự thâm niên: ${SEN_G[i].l}`,`năm ${S.year}`,L,{sen:String(i)})}
+function openRetS(i){const g=RET_S[i];const L=rowsD().filter(r=>inRetS(r,g)).sort((a,b)=>a.left-b.left);showList(`Danh sách nghỉ hưu: ${retSL(g).toLowerCase()}`,retSY(g),L,{ret:"g"+i})}
 function openRet(i){const L=rowsD().filter(r=>r.left<=RET_G[i]).sort((a,b)=>a.left-b.left);showList(`Danh sách nghỉ hưu: trong ${RET_G[i]} năm`,`đến năm ${S.year+RET_G[i]}`,L,{ret:String(RET_G[i])})}
 $("ageList").onclick=e=>{const g=e.target.closest("[data-age]");if(g)openAge(+g.dataset.age)};
 $("senList").onclick=e=>{const g=e.target.closest("[data-sen]");if(g)openSen(+g.dataset.sen)};
-$("retList").onclick=e=>{const g=e.target.closest("[data-ret]");if(g)openRet(+g.dataset.ret)};
+$("retList").onclick=e=>{const g=e.target.closest("[data-ret]");if(g)openRet(+g.dataset.ret);const h=e.target.closest("[data-rets]");if(h)openRetS(+h.dataset.rets)};
+$("retMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.retMode=b.dataset.m;[...$("retMode").children].forEach(x=>x.classList.toggle("on",x===b));renderOverview()};
 $("senMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.senMode=b.dataset.m;[...$("senMode").children].forEach(x=>x.classList.toggle("on",x===b));renderOverview()};
 
 // ---------- TAB training ----------
@@ -503,7 +521,7 @@ const FDEF={
   pos:{el:"fPos",all:"Tất cả cương vị hiện tại",opts:()=>[...new Set(S.rows.map(r=>r.pos))].sort().map(p=>[p,p]),t:(r,v)=>r.pos===v},
   done:{el:"fDone",all:"Số cương vị đã hoàn thành",opts:()=>[...Array(12).keys()].map(i=>[String(i),`Đã hoàn thành ${i} cương vị`]),t:(r,v)=>r.done===+v},
   train:{el:"fTrain",all:"Đào tạo: tất cả",opts:()=>[["NONE","Chưa đào tạo cương vị nào"],...TRAIN.map(([k,l])=>[k,"Đã đào tạo: "+l])],t:(r,v)=>v==="NONE"?r.done===0:r.trained.includes(v)},
-  ret:{el:"fRet",all:"Tất cả lộ trình hưu",opts:()=>RET_G.map(y=>[String(y),`Nghỉ hưu trong ${y} năm`]),t:(r,v)=>r.left<=+v},
+  ret:{el:"fRet",all:"Tất cả lộ trình hưu",opts:()=>[...RET_S.map((g,i)=>["g"+i,"Hưu: "+retSL(g).toLowerCase()]),...RET_G.map(y=>[String(y),`Hưu trong ${y} năm (lũy kế)`])],t:(r,v)=>v[0]==="g"?inRetS(r,RET_S[+v.slice(1)]):r.left<=+v},
   sen:{el:"fSen",all:"Tất cả thâm niên",opts:()=>SEN_G.map((g,i)=>[String(i),"Thâm niên "+g.l.toLowerCase()]),t:(r,v)=>SEN_G[+v].t(r.sen)},
   step:{el:"fStep",all:"Tất cả bậc lương",opts:()=>[...new Set(S.rows.map(r=>r.step))].sort((a,b)=>{const[x1,y1]=a.split("/").map(Number),[x2,y2]=b.split("/").map(Number);return y1-y2||x1-x2}).map(s=>[s,"Bậc "+s]),t:(r,v)=>r.step===v},
   grade:{el:"fGrade",all:"Tất cả ngạch lương",opts:()=>[...new Set(S.rows.map(r=>r.grade))].sort().map(g=>[g,"Ngạch "+g]),t:(r,v)=>r.grade===v},
