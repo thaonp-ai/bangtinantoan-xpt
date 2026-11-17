@@ -23,6 +23,7 @@ Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Work
 - Màu thương hiệu: teal #549B9C / #2F6F70, cam #DF6437, PVFCCo xanh lá #009D48, navy #354085.
 
 ## Tab Nhân sự (17/11/2026)
+- Header web (thanh trên cùng): tiêu đề cố định “Xưởng Phụ Trợ” (người dùng yêu cầu 17/11/2026), các tab nằm cạnh; bản offline (file://) vẫn ghi “Bảng tin An toàn hàng tuần”. Thêm tab mới = thêm `<a>` vào `#mainTabs` và xử lý trong `setMainTab`.
 - `web/index.html` có thanh tab (chỉ hiện khi chạy trên web, `html.hosted`): Bảng tin | Nhân sự. Tab Nhân sự = iframe `web/nhansu.html` (một file, Chart.js từ cdnjs), hash `#nhan-su`; các hash `#tuan-…` giữ nguyên. Bản offline trên OneDrive không cần tab này (ẩn khi mở file://), nhưng nếu đồng bộ giao diện thì chép cả phần tab vào được.
 - `src/worker.js` (wrangler `main`, `run_worker_first: ["/api/*"]`): `/api/nhansu` GET công khai; PUT / POST `login` / POST `restore` cần `Authorization: Bearer <ADMIN_PASSWORD>` (secret). KV binding `NHANSU`, khóa `current` (bản sửa trên web) và `prev` (bản trước). Thiếu KV hoặc secret → chỉ đọc.
 - Dữ liệu trả về = bản có `updatedAt` mới hơn giữa KV `current` và file `web/data/nhansu.json` ({updatedAt, note, rows}). Khi cập nhật file theo yêu cầu người dùng: đặt `updatedAt` = thời điểm hiện tại (ISO) để file thắng; commit “Cập nhật dữ liệu nhân sự”.
