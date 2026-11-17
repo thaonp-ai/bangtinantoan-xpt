@@ -1,6 +1,6 @@
 # Ghi chú cho Claude khi cập nhật repo này
 
-Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Tên Worker / địa chỉ: `xuongphutrodpm` → https://xuongphutrodpm.nguyenphuocthao14h5.workers.dev (đổi từ `bangtinantoan-xpt` ngày 17/11/2026; `name` trong wrangler.jsonc phải trùng tên Worker trên Cloudflare). Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
+Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Tên Worker / địa chỉ: `xuongphutrodpm` → https://xuongphutrodpm.nguyenphuocthao14h5.workers.dev ; repo GitHub `thaonp-ai/xuongphutrodpm` (cả Worker và repo đổi từ `bangtinantoan-xpt` ngày 17/11/2026; `name` trong wrangler.jsonc phải trùng tên Worker trên Cloudflare). Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
 
 ## Khi người dùng nhắn “cập nhật” (người dùng yêu cầu 17/11/2026)
 Người dùng sửa Excel/CSV trong thư mục OneDrive rồi nhắn; Claude tự làm hết, không hỏi lại:
@@ -8,7 +8,6 @@ Người dùng sửa Excel/CSV trong thư mục OneDrive rồi nhắn; Claude t�
 2. **Bảng tin** (thư mục `Bang tin an toan hang tuan`): stage `Bang tin an toan hang tuan.xlsx` → chép đè `web/data/bangtin.xlsx` → kiểm tra web hiển thị tuần mới → commit “Cập nhật dữ liệu Tuần NN/YYYY”.
 3. **Nhân sự** (thư mục `Dashboard`): stage file .csv/.xlsx mới nhất → `python3 -I tools/nhansu_to_json.py <file>` (ghi `web/data/nhansu.json`, updatedAt = bây giờ) → đọc CẢNH BÁO in ra → kiểm tra tab Nhân sự → commit “Cập nhật dữ liệu nhân sự”.
 4. Push `main` (Cloudflare tự triển khai ~1 phút), báo người dùng tóm tắt thay đổi (tuần mới / số người thêm-bớt-sửa). Chỉ cập nhật phần người dùng nhắc; nhắc chung chung thì kiểm tra cả hai theo ngày sửa file.
-- Repo GitHub đang được người dùng đổi tên `bangtinantoan-xpt` → `xuongphutrodpm` (17/11/2026); nếu push báo không tìm thấy thì add_repo tên mới.
 
 ## Cập nhật dữ liệu hàng tuần
 - Nguồn: file Excel trên máy người dùng `C:\Users\Admin\OneDrive - PVFCCo\App Xuong Phu tro\Xuong Phu tro\Bang tin an toan hang tuan\Bang tin an toan hang tuan.xlsx` (người dùng chuyển vào thư mục `Xuong Phu tro`, xác nhận 17/11/2026; file gốc của người dùng, chọn 14/11/2026; KHÔNG dùng `Bang tin an toan - Du lieu.xlsx`). Bản offline `Bang tin an toan.html` nằm cùng thư mục.

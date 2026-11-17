@@ -1,8 +1,8 @@
 # Bảng tin An toàn – Hướng dẫn triển khai Cloudflare
 
 ## Triển khai lần đầu (giống web P&ID)
-1. Cloudflare: *Workers & Pages → Create → Import a repository* (Workers Builds), chọn repo `bangtinantoan-xpt`.
-   - Project name: `xuongphutrodpm` (đổi từ `bangtinantoan-xpt` ngày 17/11/2026; repo GitHub vẫn tên `bangtinantoan-xpt`)
+1. Cloudflare: *Workers & Pages → Create → Import a repository* (Workers Builds), chọn repo `xuongphutrodpm`.
+   - Project name: `xuongphutrodpm` (Worker và repo GitHub cùng đổi từ `bangtinantoan-xpt` ngày 17/11/2026)
    - Build command: *để trống*
    - Deploy command: `npx wrangler deploy` (mặc định)
 2. Sau ~1 phút web có địa chỉ `https://xuongphutrodpm.<tài-khoản>.workers.dev`.
