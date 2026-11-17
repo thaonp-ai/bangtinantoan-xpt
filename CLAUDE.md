@@ -1,6 +1,6 @@
 # Ghi chú cho Claude khi cập nhật repo này
 
-Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
+Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Tên Worker / địa chỉ: `xuongphutrodpm` → https://xuongphutrodpm.nguyenphuocthao14h5.workers.dev (đổi từ `bangtinantoan-xpt` ngày 17/11/2026; `name` trong wrangler.jsonc phải trùng tên Worker trên Cloudflare). Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
 
 ## Cập nhật dữ liệu hàng tuần
 - Nguồn: file Excel trên máy người dùng `C:\Users\Admin\OneDrive - PVFCCo\App Xuong Phu tro\Xuong Phu tro\Bang tin an toan hang tuan\Bang tin an toan hang tuan.xlsx` (người dùng chuyển vào thư mục `Xuong Phu tro`, xác nhận 17/11/2026; file gốc của người dùng, chọn 14/11/2026; KHÔNG dùng `Bang tin an toan - Du lieu.xlsx`). Bản offline `Bang tin an toan.html` nằm cùng thư mục.

@@ -1,7 +1,7 @@
 {
   // Web Bảng tin An toàn Vệ sinh Lao động - Xưởng Phụ Trợ (file tĩnh trong web/, không cần đăng nhập)
   // src/worker.js chỉ xử lý /api/* (dữ liệu tab Nhân sự); còn lại là file tĩnh.
-  "name": "bangtinantoan-xpt",
+  "name": "xuongphutrodpm",
   "compatibility_date": "2026-10-01",
   "main": "src/worker.js",
   "assets": {

@@ -2,10 +2,10 @@
 
 ## Triển khai lần đầu (giống web P&ID)
 1. Cloudflare: *Workers & Pages → Create → Import a repository* (Workers Builds), chọn repo `bangtinantoan-xpt`.
-   - Project name: `bangtinantoan-xpt`
+   - Project name: `xuongphutrodpm` (đổi từ `bangtinantoan-xpt` ngày 17/11/2026; repo GitHub vẫn tên `bangtinantoan-xpt`)
    - Build command: *để trống*
    - Deploy command: `npx wrangler deploy` (mặc định)
-2. Sau ~1 phút web có địa chỉ `https://bangtinantoan-xpt.<tài-khoản>.workers.dev`.
+2. Sau ~1 phút web có địa chỉ `https://xuongphutrodpm.<tài-khoản>.workers.dev`.
 3. (Tùy chọn) Tên miền riêng: project → *Settings → Domains & Routes → Add → Custom domain*, ví dụ `bangtin.tenmien.vn`.
 
 ## Cập nhật dữ liệu hàng tuần
@@ -27,7 +27,7 @@ Chưa làm bước này thì tab Nhân sự vẫn xem được (đọc file `web
 1. Cloudflare → *Storage & Databases → Workers KV → Create instance*, đặt tên `nhansu-xpt` → chép **Namespace ID**.
 2. Gửi ID đó cho Claude (Claude thêm vào `wrangler.jsonc` mục `kv_namespaces`, binding `NHANSU`).
    Không thêm binding bằng tay trên dashboard: mỗi lần triển khai, cấu hình trong `wrangler.jsonc` sẽ ghi đè.
-3. Cloudflare → *Workers & Pages → bangtinantoan-xpt → Settings → Variables and Secrets → Add* → Type **Secret**, tên `ADMIN_PASSWORD`, giá trị = mật khẩu quản trị → *Deploy*.
+3. Cloudflare → *Workers & Pages → xuongphutrodpm → Settings → Variables and Secrets → Add* → Type **Secret**, tên `ADMIN_PASSWORD`, giá trị = mật khẩu quản trị → *Deploy*.
    Đổi mật khẩu: sửa lại secret này.
 
 ### Cập nhật dữ liệu nhân sự
