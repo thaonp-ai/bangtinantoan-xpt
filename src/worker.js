@@ -5,12 +5,12 @@
 //   POST /api/auth/login {username,password} → cookie phiên (HttpOnly) 7 ngày
 //   GET  /api/auth/me → {user} hoặc {user:null}
 //   POST /api/auth/logout
-//   POST /api/auth/password {current,next} → đổi mật khẩu (lưu hash vào KV, thay mật khẩu ban đầu)
+//   POST /api/auth/password {current,next,username?} → đổi mật khẩu / tên đăng nhập (lưu KV "account", thay tài khoản ban đầu)
 // Tài khoản ban đầu: env.ADMIN_INIT = "user:saltB64:hashB64:iter" (PBKDF2-SHA256) trong wrangler.jsonc.
 //
 // /api/nhansu: dữ liệu tab Nhân sự. Xem công khai; sửa cần đăng nhập.
 //   Nguồn = bản mới hơn (updatedAt) giữa KV "current" và file web/data/nhansu.json.
-// KV binding NHANSU (Wrangler tự tạo khi triển khai): current, prev, auth:<user>, sess:<token>, fail:<ip>.
+// KV binding NHANSU (Wrangler tự tạo khi triển khai): current, prev, account, sess:<token>, fail:<ip>.
 
 const FILE = "/data/nhansu.json";
 const TRAIN = ["TC", "DCS", "NH", "GT", "RIVER", "DEMI", "NITO", "RAW", "NH3", "XLNT", "NHR"];
@@ -38,18 +38,20 @@ function sameBytes(a, b) {
   return d === 0;
 }
 
-async function getAccount(env, user) {
+// Một tài khoản quản trị. Ưu tiên KV "account" (đặt trên web, không nằm trong repo);
+// chưa có thì dùng KV "auth:<user ban đầu>" (bản cũ) rồi tới ADMIN_INIT trong wrangler.jsonc.
+async function getAccount(env) {
+  const [u, salt, hash, iter] = String(env.ADMIN_INIT || "").split(":");
   if (env.NHANSU) {
-    const a = await env.NHANSU.get("auth:" + user, "json");
+    const a = (await env.NHANSU.get("account", "json")) || (u && (await env.NHANSU.get("auth:" + u, "json")));
     if (a) return a;
   }
-  const [u, salt, hash, iter] = String(env.ADMIN_INIT || "").split(":");
-  return u && u === user ? { user: u, salt, hash, iter: +iter || 100000 } : null;
+  return u ? { user: u, salt, hash, iter: +iter || 100000 } : null;
 }
 
 async function checkPassword(env, user, password) {
-  const a = await getAccount(env, user);
-  if (!a || !password) return false;
+  const a = await getAccount(env);
+  if (!a || a.user !== user || !password) return false;
   const h = await pbkdf2(password, unb64(a.salt), a.iter);
   return sameBytes(h, unb64(a.hash));
 }
@@ -63,7 +65,9 @@ async function sessionUser(req, env) {
   const t = cookieOf(req, COOKIE);
   if (!t || !env.NHANSU || !/^[A-Za-z0-9_-]{30,}$/.test(t)) return null;
   const s = await env.NHANSU.get("sess:" + t, "json");
-  return s && s.exp > Date.now() ? s.user : null;
+  if (!s || s.exp <= Date.now()) return null;
+  const a = await getAccount(env); // đổi tên đăng nhập → phiên của tên cũ hết hiệu lực
+  return a && a.user === s.user ? s.user : null;
 }
 
 // Chặn ghi từ trang web khác (CSRF): yêu cầu thay đổi phải đến từ chính web này.
@@ -142,13 +146,21 @@ async function api(req, env, url) {
   if (p === "/api/auth/password" && m === "POST") {
     const user = await sessionUser(req, env);
     if (!user) return json(NEED_LOGIN, 401);
-    const { current: cur, next } = await body();
+    const { current: cur, next, username } = await body();
     if (!(await checkPassword(env, user, String(cur || "")))) return json({ error: "Mật khẩu hiện tại không đúng" }, 400);
+    const newUser = String(username || user).trim().toLowerCase();
+    if (!/^[a-z0-9._-]{3,32}$/.test(newUser)) return json({ error: "Tên đăng nhập 3–32 ký tự: chữ không dấu, số, . _ -" }, 400);
     if (String(next || "").length < 8) return json({ error: "Mật khẩu mới cần ít nhất 8 ký tự" }, 400);
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const hash = await pbkdf2(String(next), salt, 100000);
-    await env.NHANSU.put("auth:" + user, JSON.stringify({ user, salt: b64(salt), hash: b64(hash), iter: 100000 }));
-    return json({ ok: true });
+    await env.NHANSU.put("account", JSON.stringify({ user: newUser, salt: b64(salt), hash: b64(hash), iter: 100000 }));
+    if (newUser === user) return json({ ok: true, user });
+    // đổi tên: cấp phiên mới cho tên mới (phiên tên cũ tự hết hiệu lực)
+    const token = b64(crypto.getRandomValues(new Uint8Array(32))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    await env.NHANSU.put("sess:" + token, JSON.stringify({ user: newUser, exp: Date.now() + SESSION_TTL * 1000 }), { expirationTtl: SESSION_TTL });
+    return json({ ok: true, user: newUser }, 200, {
+      "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_TTL}`,
+    });
   }
 
   // ---------- nhân sự ----------

@@ -23,7 +23,7 @@ Mở file `Bang tin an toan.html` trên máy (Chrome/Edge) → **Mở file Excel
 Web có 2 tab: **Bảng tin an toàn** và **Nhân sự** (link riêng: thêm `#nhan-su` vào cuối địa chỉ). Tab Nhân sự ai có link cũng xem được; chỉ quản trị viên (có mật khẩu) được thêm/sửa/xóa/nhập dữ liệu.
 
 ### Đăng nhập quản trị (dùng chung cả web)
-- Nút **🔒 Đăng nhập** ở góc phải thanh *Xưởng Phụ Trợ*. Tài khoản: **admin** (mật khẩu ban đầu Claude gửi trong chat ngày 17/11/2026 — nên đổi ngay: bấm *👤 admin ▾ → Đổi mật khẩu*).
+- Nút **🔒 Đăng nhập** ở góc phải thanh *Xưởng Phụ Trợ*. Tài khoản quản trị: **thaonp** (đặt 17/11/2026). Đổi tên đăng nhập hoặc mật khẩu: bấm *👤 thaonp ▾ → Đổi tên đăng nhập / mật khẩu*.
 - Chưa đăng nhập: ai cũng xem được, không sửa được. Đăng nhập rồi: hiện các nút Thêm/Sửa/Xóa/Nhập dữ liệu/Khôi phục ở tab Nhân sự. Phiên đăng nhập giữ 7 ngày trên trình duyệt đó.
 - Kho lưu dữ liệu (Workers KV) được Cloudflare tự tạo khi triển khai, không cần làm tay.
 - Quên mật khẩu: nhờ Claude đặt lại.

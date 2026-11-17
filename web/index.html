@@ -223,7 +223,7 @@ html.hosted #authBox{display:block}
     <select class="btn" id="selWeek" hidden title="Chọn tuần"></select>
     <button class="btn primary" id="btnPrint">🖨 Xuất PDF</button>
     <div id="authBox"><button class="btn" id="btnAuth" title="Đăng nhập quản trị để chỉnh sửa dữ liệu trên web">🔒 Đăng nhập</button>
-      <div class="xa-menu" id="authMenu"><div class="who">Đăng nhập: <b id="authWho"></b></div><button id="btnChangePw">🔑 Đổi mật khẩu</button><button id="btnLogout">↪ Đăng xuất</button></div></div>
+      <div class="xa-menu" id="authMenu"><div class="who">Đăng nhập: <b id="authWho"></b></div><button id="btnChangePw">🔑 Đổi tên đăng nhập / mật khẩu</button><button id="btnLogout">↪ Đăng xuất</button></div></div>
   </div>
   <div class="status" id="status"><span class="led"></span><span id="statusTxt">Chưa có dữ liệu — bấm “Mở file Excel” hoặc kéo-thả file .xlsx vào trang.</span></div>
 </div>
@@ -232,10 +232,11 @@ html.hosted #authBox{display:block}
 <div class="wrap"><div class="sheet" id="sheet"></div></div>
 <iframe id="hrFrame" title="Nhân sự Xưởng Phụ Trợ"></iframe>
 <div class="xa-ov" id="ovAuth"><form class="xa-dlg" id="fmAuth" autocomplete="on"><h3>Đăng nhập quản trị</h3><p>Dành cho quản trị viên web Xưởng Phụ Trợ. Sau khi đăng nhập mới chỉnh sửa được dữ liệu.</p>
-<label for="auUser">Tên đăng nhập</label><input id="auUser" name="username" autocomplete="username" value="admin" required>
+<label for="auUser">Tên đăng nhập</label><input id="auUser" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
 <label for="auPass">Mật khẩu</label><input id="auPass" name="password" type="password" autocomplete="current-password" required>
 <div class="xa-err" id="auErr"></div><div class="xa-act"><button type="button" data-xclose>Hủy</button><button type="submit" class="pri" id="auOk">Đăng nhập</button></div></form></div>
-<div class="xa-ov" id="ovPw"><form class="xa-dlg" id="fmPw" autocomplete="off"><h3>Đổi mật khẩu</h3><p>Mật khẩu mới cần ít nhất 8 ký tự.</p>
+<div class="xa-ov" id="ovPw"><form class="xa-dlg" id="fmPw" autocomplete="off"><h3>Tài khoản quản trị</h3><p>Đổi tên đăng nhập và/hoặc mật khẩu. Mật khẩu mới cần ít nhất 8 ký tự.</p>
+<label for="pwUser">Tên đăng nhập</label><input id="pwUser" autocomplete="username" autocapitalize="off" spellcheck="false" required>
 <label for="pwCur">Mật khẩu hiện tại</label><input id="pwCur" type="password" autocomplete="current-password" required>
 <label for="pwNew">Mật khẩu mới</label><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required>
 <label for="pwNew2">Nhập lại mật khẩu mới</label><input id="pwNew2" type="password" autocomplete="new-password" minlength="8" required>
@@ -744,16 +745,16 @@ async function authApi(path,body){const r=await fetch("/api/auth/"+path,{method:
 async function refreshAuth(){try{setAuth((await authApi("me")).user);}catch(e){setAuth(null);}}
 function xaOpen(id){$(id).classList.add("show");const i=$(id).querySelector("input:not([value]),input[type=password]");setTimeout(()=>i&&i.focus(),50);}
 document.querySelectorAll(".xa-ov").forEach(o=>o.addEventListener("click",e=>{if(e.target===o||e.target.closest("[data-xclose]"))o.classList.remove("show");}));
-$("btnAuth").onclick=e=>{e.stopPropagation();if(!AUTH_USER){$("auErr").textContent="";$("auPass").value="";xaOpen("ovAuth");}else $("authMenu").classList.toggle("show");};
+$("btnAuth").onclick=e=>{e.stopPropagation();if(!AUTH_USER){$("auErr").textContent="";$("auPass").value="";try{$("auUser").value=localStorage.getItem("xpt_user")||""}catch(err){}xaOpen("ovAuth");setTimeout(()=>($("auUser").value?$("auPass"):$("auUser")).focus(),60);}else $("authMenu").classList.toggle("show");};
 document.addEventListener("click",e=>{if(!e.target.closest("#authBox"))$("authMenu").classList.remove("show");});
 $("fmAuth").onsubmit=async e=>{e.preventDefault();$("auOk").disabled=true;$("auErr").textContent="";
-  try{const j=await authApi("login",{username:$("auUser").value,password:$("auPass").value});$("ovAuth").classList.remove("show");$("auPass").value="";setAuth(j.user);xaToast("Đã đăng nhập quản trị");}
+  try{const j=await authApi("login",{username:$("auUser").value,password:$("auPass").value});$("ovAuth").classList.remove("show");$("auPass").value="";setAuth(j.user);try{localStorage.setItem("xpt_user",j.user)}catch(err){}xaToast("Đã đăng nhập quản trị");}
   catch(err){$("auErr").textContent=err.message;}finally{$("auOk").disabled=false;}};
 $("btnLogout").onclick=async()=>{$("authMenu").classList.remove("show");try{await authApi("logout",{});}catch(e){}setAuth(null);xaToast("Đã đăng xuất");};
-$("btnChangePw").onclick=()=>{$("authMenu").classList.remove("show");$("fmPw").reset();$("pwErr2").textContent="";xaOpen("ovPw");};
+$("btnChangePw").onclick=()=>{$("authMenu").classList.remove("show");$("fmPw").reset();$("pwUser").value=AUTH_USER||"";$("pwErr2").textContent="";xaOpen("ovPw");};
 $("fmPw").onsubmit=async e=>{e.preventDefault();$("pwErr2").textContent="";
   if($("pwNew").value!==$("pwNew2").value){$("pwErr2").textContent="Hai lần nhập mật khẩu mới không khớp";return;}
-  $("pwOk2").disabled=true;try{await authApi("password",{current:$("pwCur").value,next:$("pwNew").value});$("ovPw").classList.remove("show");xaToast("Đã đổi mật khẩu");}
+  $("pwOk2").disabled=true;try{const j=await authApi("password",{current:$("pwCur").value,next:$("pwNew").value,username:$("pwUser").value});$("ovPw").classList.remove("show");setAuth(j.user);try{localStorage.setItem("xpt_user",j.user)}catch(e){}xaToast("Đã lưu tài khoản quản trị");}
   catch(err){$("pwErr2").textContent=err.message;if(/đăng nhập/i.test(err.message))refreshAuth();}finally{$("pwOk2").disabled=false;}};
 addEventListener("message",e=>{if(e.origin===location.origin&&e.data&&e.data.type==="xpt-auth-refresh")refreshAuth();});
 $("hrFrame").addEventListener("load",()=>setAuth(AUTH_USER));
