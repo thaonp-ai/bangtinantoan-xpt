@@ -1,6 +1,5 @@
 {
-  // Web Bảng tin An toàn Vệ sinh Lao động - Xưởng Phụ Trợ (file tĩnh trong web/, không cần đăng nhập)
-  // src/worker.js chỉ xử lý /api/* (dữ liệu tab Nhân sự); còn lại là file tĩnh.
+  // Web Xưởng Phụ Trợ: file tĩnh trong web/ + src/worker.js cho /api/* (đăng nhập quản trị, dữ liệu Nhân sự).
   "name": "xuongphutrodpm",
   "compatibility_date": "2026-10-01",
   "main": "src/worker.js",
@@ -9,6 +8,11 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
+  },
+  // Kho lưu dữ liệu: không ghi id, Wrangler tự tạo khi triển khai lần đầu và giữ liên kết các lần sau.
+  "kv_namespaces": [{ "binding": "NHANSU" }],
+  "vars": {
+    // Tài khoản quản trị ban đầu "admin" (PBKDF2-SHA256, chỉ là mã băm). Đổi mật khẩu trên web → lưu trong KV và thay thế mục này.
+    "ADMIN_INIT": "admin:uMsd2uOwm9wmkj/IQBN4ug==:d879a2R/XqmRpim8UL48hzBix/JaMR1kWcenZIeBlOk=:100000"
   }
-  // Lưu chung dữ liệu nhân sự: thêm KV binding "NHANSU" (id do Cloudflare cấp) và secret ADMIN_PASSWORD.
 }

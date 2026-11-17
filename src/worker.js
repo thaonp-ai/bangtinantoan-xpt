@@ -1,42 +1,81 @@
-// Worker cho web Bảng tin An toàn – Xưởng Phụ Trợ.
+// Worker cho web Xưởng Phụ Trợ (xuongphutrodpm).
 // Mọi đường dẫn khác /api/* do file tĩnh trong web/ phục vụ (env.ASSETS).
-// /api/nhansu: dữ liệu tab Nhân sự.
-//   - Xem: công khai (người dùng chọn 17/11/2026).
-//   - Sửa: cần mật khẩu quản trị (secret ADMIN_PASSWORD) và KV binding NHANSU.
-//   - Nguồn dữ liệu: bản mới hơn (theo updatedAt) giữa KV "current" và file web/data/nhansu.json.
+//
+// Đăng nhập quản trị dùng chung cho cả web (người dùng yêu cầu 17/11/2026):
+//   POST /api/auth/login {username,password} → cookie phiên (HttpOnly) 7 ngày
+//   GET  /api/auth/me → {user} hoặc {user:null}
+//   POST /api/auth/logout
+//   POST /api/auth/password {current,next} → đổi mật khẩu (lưu hash vào KV, thay mật khẩu ban đầu)
+// Tài khoản ban đầu: env.ADMIN_INIT = "user:saltB64:hashB64:iter" (PBKDF2-SHA256) trong wrangler.jsonc.
+//
+// /api/nhansu: dữ liệu tab Nhân sự. Xem công khai; sửa cần đăng nhập.
+//   Nguồn = bản mới hơn (updatedAt) giữa KV "current" và file web/data/nhansu.json.
+// KV binding NHANSU (Wrangler tự tạo khi triển khai): current, prev, auth:<user>, sess:<token>, fail:<ip>.
 
 const FILE = "/data/nhansu.json";
 const TRAIN = ["TC", "DCS", "NH", "GT", "RIVER", "DEMI", "NITO", "RAW", "NH3", "XLNT", "NHR"];
+const COOKIE = "xpt_sess";
+const SESSION_TTL = 7 * 24 * 3600;
 
-const json = (obj, status = 200) =>
+const json = (obj, status = 200, headers = {}) =>
   new Response(JSON.stringify(obj), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers },
   });
+
+const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+async function pbkdf2(password, salt, iter) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  return crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: iter }, key, 256);
+}
+
+function sameBytes(a, b) {
+  a = new Uint8Array(a); b = new Uint8Array(b);
+  let d = a.length ^ b.length;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) d |= (a[i] || 0) ^ (b[i] || 0);
+  return d === 0;
+}
+
+async function getAccount(env, user) {
+  if (env.NHANSU) {
+    const a = await env.NHANSU.get("auth:" + user, "json");
+    if (a) return a;
+  }
+  const [u, salt, hash, iter] = String(env.ADMIN_INIT || "").split(":");
+  return u && u === user ? { user: u, salt, hash, iter: +iter || 100000 } : null;
+}
+
+async function checkPassword(env, user, password) {
+  const a = await getAccount(env, user);
+  if (!a || !password) return false;
+  const h = await pbkdf2(password, unb64(a.salt), a.iter);
+  return sameBytes(h, unb64(a.hash));
+}
+
+function cookieOf(req, name) {
+  const m = (req.headers.get("cookie") || "").match(new RegExp("(?:^|;\\s*)" + name + "=([^;]+)"));
+  return m ? m[1] : null;
+}
+
+async function sessionUser(req, env) {
+  const t = cookieOf(req, COOKIE);
+  if (!t || !env.NHANSU || !/^[A-Za-z0-9_-]{30,}$/.test(t)) return null;
+  const s = await env.NHANSU.get("sess:" + t, "json");
+  return s && s.exp > Date.now() ? s.user : null;
+}
+
+// Chặn ghi từ trang web khác (CSRF): yêu cầu thay đổi phải đến từ chính web này.
+function sameOrigin(req, url) {
+  const o = req.headers.get("origin");
+  return !o || o === url.origin;
+}
 
 async function readFile(env, req) {
   const r = await env.ASSETS.fetch(new Request(new URL(FILE, req.url)));
   if (!r.ok) return null;
   try { return await r.json(); } catch { return null; }
-}
-
-function canEdit(env) {
-  return !!(env.NHANSU && env.ADMIN_PASSWORD);
-}
-
-function safeEqual(a, b) {
-  a = String(a || ""); b = String(b || "");
-  let d = a.length ^ b.length;
-  for (let i = 0; i < Math.max(a.length, b.length); i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
-  return d === 0;
-}
-
-async function authed(req, env) {
-  const h = req.headers.get("authorization") || "";
-  const pw = h.startsWith("Bearer ") ? h.slice(7) : "";
-  const ok = canEdit(env) && pw && safeEqual(pw, env.ADMIN_PASSWORD);
-  if (!ok) await new Promise((r) => setTimeout(r, 600)); // làm chậm dò mật khẩu
-  return ok;
 }
 
 async function current(env, req) {
@@ -65,36 +104,75 @@ function cleanRows(rows) {
   });
 }
 
+const NEED_KV = { error: "Chưa có kho lưu dữ liệu (KV) trên Cloudflare." };
+const NEED_LOGIN = { error: "Cần đăng nhập quản trị", login: true };
+
 async function api(req, env, url) {
   const p = url.pathname.replace(/\/+$/, "");
   const m = req.method;
+  if (m !== "GET" && !sameOrigin(req, url)) return json({ error: "Không hợp lệ" }, 403);
+  const body = async () => { try { return await req.json(); } catch { return {}; } };
 
+  // ---------- đăng nhập ----------
+  if (p === "/api/auth/me" && m === "GET") {
+    return json({ user: await sessionUser(req, env), ready: !!env.NHANSU });
+  }
+  if (p === "/api/auth/login" && m === "POST") {
+    if (!env.NHANSU) return json(NEED_KV, 503);
+    const ip = req.headers.get("cf-connecting-ip") || "x";
+    const fails = +(await env.NHANSU.get("fail:" + ip)) || 0;
+    if (fails >= 10) return json({ error: "Sai quá nhiều lần. Thử lại sau 15 phút." }, 429);
+    const { username, password } = await body();
+    const user = String(username || "").trim().toLowerCase();
+    if (!(await checkPassword(env, user, String(password || "")))) {
+      await env.NHANSU.put("fail:" + ip, String(fails + 1), { expirationTtl: 900 });
+      return json({ error: "Sai tên đăng nhập hoặc mật khẩu" }, 401);
+    }
+    const token = b64(crypto.getRandomValues(new Uint8Array(32))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    await env.NHANSU.put("sess:" + token, JSON.stringify({ user, exp: Date.now() + SESSION_TTL * 1000 }), { expirationTtl: SESSION_TTL });
+    return json({ user }, 200, {
+      "set-cookie": `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_TTL}`,
+    });
+  }
+  if (p === "/api/auth/logout" && m === "POST") {
+    const t = cookieOf(req, COOKIE);
+    if (t && env.NHANSU && /^[A-Za-z0-9_-]{30,}$/.test(t)) await env.NHANSU.delete("sess:" + t);
+    return json({ ok: true }, 200, { "set-cookie": `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0` });
+  }
+  if (p === "/api/auth/password" && m === "POST") {
+    const user = await sessionUser(req, env);
+    if (!user) return json(NEED_LOGIN, 401);
+    const { current: cur, next } = await body();
+    if (!(await checkPassword(env, user, String(cur || "")))) return json({ error: "Mật khẩu hiện tại không đúng" }, 400);
+    if (String(next || "").length < 8) return json({ error: "Mật khẩu mới cần ít nhất 8 ký tự" }, 400);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const hash = await pbkdf2(String(next), salt, 100000);
+    await env.NHANSU.put("auth:" + user, JSON.stringify({ user, salt: b64(salt), hash: b64(hash), iter: 100000 }));
+    return json({ ok: true });
+  }
+
+  // ---------- nhân sự ----------
   if (p === "/api/nhansu" && m === "GET") {
     const d = await current(env, req);
-    return json({ ...d, canEdit: canEdit(env) });
-  }
-  if (p === "/api/nhansu/login" && m === "POST") {
-    if (!canEdit(env)) return json({ error: "Chưa bật lưu chung (thiếu KV hoặc mật khẩu quản trị)." }, 503);
-    return (await authed(req, env)) ? json({ ok: true }) : json({ error: "Sai mật khẩu" }, 401);
+    return json({ ...d, canEdit: !!env.NHANSU });
   }
   if (p === "/api/nhansu" && m === "PUT") {
-    if (!canEdit(env)) return json({ error: "Chưa bật lưu chung (thiếu KV hoặc mật khẩu quản trị)." }, 503);
-    if (!(await authed(req, env))) return json({ error: "Sai mật khẩu" }, 401);
-    let body;
-    try { body = await req.json(); } catch { return json({ error: "Dữ liệu không hợp lệ" }, 400); }
+    if (!env.NHANSU) return json(NEED_KV, 503);
+    if (!(await sessionUser(req, env))) return json(NEED_LOGIN, 401);
+    const b = await body();
     let rows;
-    try { rows = cleanRows(body.rows); } catch (e) { return json({ error: e.message }, 400); }
+    try { rows = cleanRows(b.rows); } catch (e) { return json({ error: e.message }, 400); }
     const cur = await current(env, req);
-    if (body.base && cur.updatedAt && body.base !== cur.updatedAt)
+    if (b.base && cur.updatedAt && b.base !== cur.updatedAt)
       return json({ error: "Dữ liệu vừa được người khác cập nhật. Trang sẽ tải lại.", conflict: true }, 409);
-    const doc = { rows, updatedAt: new Date().toISOString(), note: String(body.note || "").slice(0, 200) };
+    const doc = { rows, updatedAt: new Date().toISOString(), note: String(b.note || "").slice(0, 200) };
     if (cur.source === "web") await env.NHANSU.put("prev", JSON.stringify(cur)); // giữ 1 bản trước để cứu
     await env.NHANSU.put("current", JSON.stringify(doc));
     return json({ ok: true, updatedAt: doc.updatedAt });
   }
   if (p === "/api/nhansu/restore" && m === "POST") {
-    if (!canEdit(env)) return json({ error: "Chưa bật lưu chung." }, 503);
-    if (!(await authed(req, env))) return json({ error: "Sai mật khẩu" }, 401);
+    if (!env.NHANSU) return json(NEED_KV, 503);
+    if (!(await sessionUser(req, env))) return json(NEED_LOGIN, 401);
     const cur = await env.NHANSU.get("current");
     if (cur) await env.NHANSU.put("prev", cur);
     await env.NHANSU.delete("current");

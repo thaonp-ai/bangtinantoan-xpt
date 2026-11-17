@@ -172,7 +172,7 @@ th.num{text-align:right}
   <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
   <div class="brand"><h1>Quản trị nhân sự</h1><div class="sub">Xưởng Phụ Trợ</div></div>
   <div class="tools">
-    <button id="btnLogin" class="btn">🔒 Đăng nhập quản trị</button>
+    <span id="rolePill" class="pill adm" title="Đang đăng nhập quản trị – được sửa dữ liệu">✓ Quản trị</span>
     <label class="pill" style="gap:8px">Thời điểm <select id="yearSel" class="sel" style="padding:2px 6px;border:0"></select></label>
     <button class="btn adm" id="btnImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Nhập dữ liệu</button>
     <button class="btn" id="btnCsv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Xuất CSV</button>
@@ -292,9 +292,6 @@ th.num{text-align:right}
 </div>
 <div class="mf"><span class="err" id="impErr"></span><button class="btn" data-close>Hủy</button><button class="btn primary" id="impOk" disabled>Thay thế dữ liệu</button></div></div></div>
 
-<div class="ov" id="ovLogin"><div class="modal sm"><div class="mh"><div><h2>Đăng nhập quản trị</h2><p>Quản trị viên mới được thêm, sửa, xóa và nhập dữ liệu.</p></div><button class="iconbtn x" data-close>✕</button></div>
-<form class="mb" id="loginForm"><input type="password" id="pwIn" placeholder="Mật khẩu quản trị" autocomplete="current-password" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px"><div class="err" id="pwErr" style="margin-top:8px"></div></form>
-<div class="mf"><button class="btn" data-close>Hủy</button><button class="btn primary" id="pwOk">Đăng nhập</button></div></div></div>
 <datalist id="posOpts"></datalist><datalist id="gradeOpts"></datalist>
 <div class="toast" id="toast"></div>
 
@@ -613,9 +610,8 @@ async function delPerson(id){
 
 // ---------- persistence (Cloudflare Worker /api/nhansu) ----------
 const API="/api/nhansu";
-let PW=null;try{PW=sessionStorage.getItem("hrpw")}catch(e){}
 async function apiCall(path,opt={}){
-  const r=await fetch(API+path,{cache:"no-store",...opt,headers:{"content-type":"application/json",...(PW?{authorization:"Bearer "+PW}:{})}});
+  const r=await fetch(API+path,{cache:"no-store",...opt,credentials:"same-origin",headers:{"content-type":"application/json"}});
   let j={};try{j=await r.json()}catch(e){}
   if(!r.ok){const e=new Error(j.error||("Lỗi "+r.status));e.status=r.status;e.conflict=!!j.conflict;throw e}
   return j;
@@ -635,14 +631,14 @@ async function load(){
 }
 let saving=false;
 async function save(rows,note){
-  if(!S.admin){toast("Cần đăng nhập quản trị");return false}
+  if(!S.admin){toast("Cần đăng nhập quản trị (nút Đăng nhập ở góc trên bên phải)");return false}
   if(saving){toast("Đang lưu, vui lòng đợi…");return false}
   saving=true;setSync("Đang lưu…");
   try{const j=await apiCall("",{method:"PUT",body:JSON.stringify({rows,note:note||"",base:S.meta.updatedAt||null})});
     S.meta={...S.meta,updatedAt:j.updatedAt,source:"web"};S.rows=rows.map(r=>({...r,trained:[...r.trained]}));
     setSync("Đã lưu "+fmtTime(j.updatedAt));renderAll();return true}
   catch(e){setSync("");
-    if(e.status===401){logout();toast("Phiên quản trị hết hiệu lực – vui lòng đăng nhập lại")}
+    if(e.status===401){sessionLost()}
     else if(e.conflict){toast(e.message);load()}
     else toast("Lưu thất bại: "+e.message);
     return false}
@@ -650,16 +646,12 @@ async function save(rows,note){
 }
 function setSync(t){$("sync").textContent=t}
 function banner(t){const b=$("banner");b.innerHTML=t||"";b.classList.toggle("show",!!t)}
-function applyRole(){document.body.classList.toggle("is-admin",S.admin);const b=$("btnLogin");b.textContent=S.admin?"✓ Quản trị · Đăng xuất":"🔒 Đăng nhập quản trị";b.classList.toggle("primary",S.admin);if(S.tab==="list")renderList();else if(S.loaded)renderDetail()}
-function logout(){PW=null;S.admin=false;try{sessionStorage.removeItem("hrpw")}catch(e){}applyRole()}
-$("btnLogin").onclick=()=>{if(S.admin){logout();toast("Đã đăng xuất");return}
-  if(S.loaded&&!S.canEdit){toast("Chưa bật lưu chung trên Cloudflare (xem HUONG-DAN-TRIEN-KHAI.md)");return}
-  $("pwIn").value="";$("pwErr").textContent="";openOv("ovLogin");setTimeout(()=>$("pwIn").focus(),50)};
-async function doLogin(){const pw=$("pwIn").value;if(!pw)return;$("pwOk").disabled=true;$("pwErr").textContent="";
-  try{PW=pw;await apiCall("/login",{method:"POST",body:"{}"});S.admin=true;try{sessionStorage.setItem("hrpw",pw)}catch(e){}$("ovLogin").classList.remove("show");applyRole();toast("Đã đăng nhập quản trị")}
-  catch(e){PW=null;$("pwErr").textContent=e.message}
-  finally{$("pwOk").disabled=false}}
-$("pwOk").onclick=doLogin;$("loginForm").onsubmit=e=>{e.preventDefault();doLogin()};
+function applyRole(){document.body.classList.toggle("is-admin",S.admin);if(S.tab==="list")renderList();else if(S.loaded)renderDetail()}
+// Đăng nhập dùng chung cho cả web: nút Đăng nhập nằm trên thanh "Xưởng Phụ Trợ" của trang chính.
+async function checkAuth(){try{const r=await fetch("/api/auth/me",{cache:"no-store",credentials:"same-origin"});const j=await r.json();setAdmin(!!j.user)}catch(e){setAdmin(false)}}
+function setAdmin(v){if(S.admin===v)return;S.admin=v;applyRole()}
+function sessionLost(){setAdmin(false);toast("Phiên đăng nhập đã hết hạn – vui lòng đăng nhập lại (nút Đăng nhập ở góc trên bên phải)");try{parent!==window&&parent.postMessage({type:"xpt-auth-refresh"},location.origin)}catch(e){}}
+window.addEventListener("message",e=>{if(e.origin===location.origin&&e.data&&e.data.type==="xpt-auth")setAdmin(!!e.data.user)});
 
 // ---------- import / export ----------
 function parseCSV(text){
@@ -719,7 +711,7 @@ $("impOk").onclick=async()=>{if(!pending)return;$("impOk").disabled=true;
   if(await save(pending,"Nhập file")){$("ovImport").classList.remove("show");toast(`Đã cập nhật ${pending.length} nhân sự`)}else $("impOk").disabled=false};
 $("btnRestore").onclick=async()=>{
   if(!await confirmBox("Khôi phục theo file gốc?",`Bỏ toàn bộ chỉnh sửa đã làm trên web, quay về dữ liệu trong file <b>data/nhansu.json</b> của web. Nên <b>Xuất JSON (Backup)</b> trước.`,"Khôi phục",true))return;
-  try{await apiCall("/restore",{method:"POST",body:"{}"});toast("Đã khôi phục theo file gốc");load()}catch(e){if(e.status===401)logout();toast("Không khôi phục được: "+e.message)}
+  try{await apiCall("/restore",{method:"POST",body:"{}"});toast("Đã khôi phục theo file gốc");load()}catch(e){if(e.status===401)sessionLost();else toast("Không khôi phục được: "+e.message)}
 };
 function toCSV(){
   const H=["Mã NV","Họ và tên","Năm sinh","Tuổi","Giới tính","Tuổi nghỉ hưu","Năm còn lại đến hưu","Năm vào nhà máy","Số năm làm việc","Cương vị đang đảm nhận","Ngạch lương","Bậc lương","Hệ số lương","Năm tăng lương gần nhất","Phụ cấp","Cương vị đã hoàn thành",...TRAIN.map(t=>t[1]==="Nitơ-MN"?"Nito-MN":t[1])];
@@ -748,11 +740,10 @@ window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(["ov
 (function boot(){
   const h=location.hash.slice(1);if(["overview","training","salary","list"].includes(h))setTab(h);
   setSync("Đang tải dữ liệu…");
-  if(PW){S.admin=true}
   applyRole();
-  load().then(()=>{if(PW&&S.canEdit)apiCall("/login",{method:"POST",body:"{}"}).catch(()=>logout())});
+  load();checkAuth();
   // tự cập nhật khi quay lại trang (nếu không đang mở hộp thoại)
-  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!document.querySelector(".ov.show")&&!saving)load()});
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!document.querySelector(".ov.show")&&!saving){load();checkAuth()}});
 })();
 </script>
 </body>

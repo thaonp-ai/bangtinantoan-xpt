@@ -171,6 +171,30 @@ body.tab-hr{overflow:hidden}
 /* tab Nhân sự không có thanh cuộn ngoài: bù bề rộng thanh cuộn để header không xê dịch */
 body.tab-hr .toolbar{padding-right:var(--sbw,0px)}
 body.tab-hr .wrap,body.tab-hr .toolbar .status,body.tab-hr #selWeek,body.tab-hr #btnPrint,body.tab-hr #btnOpen,body.tab-hr #btnReconnect,body.tab-hr #btnReload,body.tab-hr #autoWrap,body.tab-hr .drop-hint{display:none!important}
+/* ---------- đăng nhập quản trị dùng chung (chỉ trên web) ---------- */
+#authBox{position:relative;display:none}
+html.hosted #authBox{display:block}
+#btnAuth.on{background:#fff;color:var(--teal-dd);border-color:#fff}
+.xa-menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;color:#1f2937;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.2);min-width:190px;padding:6px;display:none;z-index:40}
+.xa-menu.show{display:block}
+.xa-menu button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:7px;font:inherit;font-size:13.5px;color:inherit;cursor:pointer}
+.xa-menu button:hover{background:#eef5f5}
+.xa-menu .who{padding:8px 12px 6px;font-size:12px;color:#6b7280;border-bottom:1px solid #eef0f3;margin-bottom:4px}
+.xa-ov{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.xa-ov.show{display:flex}
+.xa-dlg{background:#fff;color:#1f2937;border-radius:14px;width:min(380px,100%);box-shadow:0 20px 60px rgba(0,0,0,.3);padding:22px}
+.xa-dlg h3{margin:0 0 4px;font-size:17px;color:var(--teal-dd)}
+.xa-dlg p{margin:0 0 14px;font-size:12.5px;color:#6b7280}
+.xa-dlg label{display:block;font-size:12.5px;font-weight:600;color:#374151;margin:10px 0 4px}
+.xa-dlg input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d1d5db;border-radius:9px;font:inherit;font-size:14px}
+.xa-dlg input:focus{outline:2px solid var(--teal);border-color:transparent}
+.xa-err{color:#c23131;font-size:12.5px;min-height:18px;margin-top:8px}
+.xa-act{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.xa-act button{padding:9px 16px;border-radius:9px;border:1px solid #d1d5db;background:#fff;font:inherit;font-weight:600;cursor:pointer}
+.xa-act button.pri{background:var(--teal-dd);border-color:var(--teal-dd);color:#fff}
+.xa-act button:disabled{opacity:.6;cursor:wait}
+.xa-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px;z-index:120;opacity:0;transition:opacity .25s;pointer-events:none}
+.xa-toast.show{opacity:1}
 /* ---------- print ---------- */
 @page{size:A4 portrait;margin:10mm 11mm 10mm 11mm}
 @media print{
@@ -198,6 +222,8 @@ body.tab-hr .wrap,body.tab-hr .toolbar .status,body.tab-hr #selWeek,body.tab-hr 
     <label class="switch" id="autoWrap" hidden><input type="checkbox" id="chkAuto" checked> Tự động cập nhật</label>
     <select class="btn" id="selWeek" hidden title="Chọn tuần"></select>
     <button class="btn primary" id="btnPrint">🖨 Xuất PDF</button>
+    <div id="authBox"><button class="btn" id="btnAuth" title="Đăng nhập quản trị để chỉnh sửa dữ liệu trên web">🔒 Đăng nhập</button>
+      <div class="xa-menu" id="authMenu"><div class="who">Đăng nhập: <b id="authWho"></b></div><button id="btnChangePw">🔑 Đổi mật khẩu</button><button id="btnLogout">↪ Đăng xuất</button></div></div>
   </div>
   <div class="status" id="status"><span class="led"></span><span id="statusTxt">Chưa có dữ liệu — bấm “Mở file Excel” hoặc kéo-thả file .xlsx vào trang.</span></div>
 </div>
@@ -205,6 +231,16 @@ body.tab-hr .wrap,body.tab-hr .toolbar .status,body.tab-hr #selWeek,body.tab-hr 
 <div class="drop-hint">Thả file Excel vào đây</div>
 <div class="wrap"><div class="sheet" id="sheet"></div></div>
 <iframe id="hrFrame" title="Nhân sự Xưởng Phụ Trợ"></iframe>
+<div class="xa-ov" id="ovAuth"><form class="xa-dlg" id="fmAuth" autocomplete="on"><h3>Đăng nhập quản trị</h3><p>Dành cho quản trị viên web Xưởng Phụ Trợ. Sau khi đăng nhập mới chỉnh sửa được dữ liệu.</p>
+<label for="auUser">Tên đăng nhập</label><input id="auUser" name="username" autocomplete="username" value="admin" required>
+<label for="auPass">Mật khẩu</label><input id="auPass" name="password" type="password" autocomplete="current-password" required>
+<div class="xa-err" id="auErr"></div><div class="xa-act"><button type="button" data-xclose>Hủy</button><button type="submit" class="pri" id="auOk">Đăng nhập</button></div></form></div>
+<div class="xa-ov" id="ovPw"><form class="xa-dlg" id="fmPw" autocomplete="off"><h3>Đổi mật khẩu</h3><p>Mật khẩu mới cần ít nhất 8 ký tự.</p>
+<label for="pwCur">Mật khẩu hiện tại</label><input id="pwCur" type="password" autocomplete="current-password" required>
+<label for="pwNew">Mật khẩu mới</label><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required>
+<label for="pwNew2">Nhập lại mật khẩu mới</label><input id="pwNew2" type="password" autocomplete="new-password" minlength="8" required>
+<div class="xa-err" id="pwErr2"></div><div class="xa-act"><button type="button" data-xclose>Hủy</button><button type="submit" class="pri" id="pwOk2">Lưu</button></div></form></div>
+<div class="xa-toast" id="xaToast"></div>
 
 <script>
 "use strict";
@@ -696,6 +732,33 @@ $("mainTabs").onclick=e=>{const a=e.target.closest("a");if(!a)return;e.preventDe
 addEventListener("resize",()=>{if(document.body.classList.contains("tab-hr"))sizeFrame();});
 if(!HOSTED)$("brandTxt").textContent="Bảng tin An toàn hàng tuần";
 if(HOSTED&&location.hash==="#nhan-su")setMainTab(true);
+
+/* ===== Đăng nhập quản trị dùng chung (API /api/auth/*, cookie phiên) ===== */
+let AUTH_USER=null;
+function xaToast(t){const e=$("xaToast");e.textContent=t;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("show"),2600);}
+function setAuth(u){AUTH_USER=u||null;const b=$("btnAuth");b.textContent=AUTH_USER?"👤 "+AUTH_USER+" ▾":"🔒 Đăng nhập";b.classList.toggle("on",!!AUTH_USER);$("authWho").textContent=AUTH_USER||"";
+  document.documentElement.classList.toggle("is-admin",!!AUTH_USER);
+  try{const f=$("hrFrame");if(f.contentWindow)f.contentWindow.postMessage({type:"xpt-auth",user:AUTH_USER},location.origin);}catch(e){}}
+async function authApi(path,body){const r=await fetch("/api/auth/"+path,{method:body?"POST":"GET",credentials:"same-origin",cache:"no-store",headers:body?{"content-type":"application/json"}:{},body:body?JSON.stringify(body):undefined});
+  let j={};try{j=await r.json();}catch(e){}if(!r.ok)throw new Error(j.error||("Lỗi "+r.status));return j;}
+async function refreshAuth(){try{setAuth((await authApi("me")).user);}catch(e){setAuth(null);}}
+function xaOpen(id){$(id).classList.add("show");const i=$(id).querySelector("input:not([value]),input[type=password]");setTimeout(()=>i&&i.focus(),50);}
+document.querySelectorAll(".xa-ov").forEach(o=>o.addEventListener("click",e=>{if(e.target===o||e.target.closest("[data-xclose]"))o.classList.remove("show");}));
+$("btnAuth").onclick=e=>{e.stopPropagation();if(!AUTH_USER){$("auErr").textContent="";$("auPass").value="";xaOpen("ovAuth");}else $("authMenu").classList.toggle("show");};
+document.addEventListener("click",e=>{if(!e.target.closest("#authBox"))$("authMenu").classList.remove("show");});
+$("fmAuth").onsubmit=async e=>{e.preventDefault();$("auOk").disabled=true;$("auErr").textContent="";
+  try{const j=await authApi("login",{username:$("auUser").value,password:$("auPass").value});$("ovAuth").classList.remove("show");$("auPass").value="";setAuth(j.user);xaToast("Đã đăng nhập quản trị");}
+  catch(err){$("auErr").textContent=err.message;}finally{$("auOk").disabled=false;}};
+$("btnLogout").onclick=async()=>{$("authMenu").classList.remove("show");try{await authApi("logout",{});}catch(e){}setAuth(null);xaToast("Đã đăng xuất");};
+$("btnChangePw").onclick=()=>{$("authMenu").classList.remove("show");$("fmPw").reset();$("pwErr2").textContent="";xaOpen("ovPw");};
+$("fmPw").onsubmit=async e=>{e.preventDefault();$("pwErr2").textContent="";
+  if($("pwNew").value!==$("pwNew2").value){$("pwErr2").textContent="Hai lần nhập mật khẩu mới không khớp";return;}
+  $("pwOk2").disabled=true;try{await authApi("password",{current:$("pwCur").value,next:$("pwNew").value});$("ovPw").classList.remove("show");xaToast("Đã đổi mật khẩu");}
+  catch(err){$("pwErr2").textContent=err.message;if(/đăng nhập/i.test(err.message))refreshAuth();}finally{$("pwOk2").disabled=false;}};
+addEventListener("message",e=>{if(e.origin===location.origin&&e.data&&e.data.type==="xpt-auth-refresh")refreshAuth();});
+$("hrFrame").addEventListener("load",()=>setAuth(AUTH_USER));
+document.addEventListener("visibilitychange",()=>{if(HOSTED&&document.visibilityState==="visible")refreshAuth();});
+if(HOSTED)refreshAuth();
 
 (async function init(){
   if(HOSTED)setStatus("Đang tải dữ liệu bảng tin…");
