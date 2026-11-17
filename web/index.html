@@ -158,11 +158,21 @@ table.td td.act{border-left:3px solid var(--orange-l)}
 html.hosted:not(.local) #btnOpen,html.hosted:not(.local) #autoWrap,body.viewer #btnOpen,body.viewer #btnReconnect,body.viewer #btnReload,body.viewer #autoWrap,body.viewer .drop-hint{display:none!important}
 .btn:disabled{opacity:.7;cursor:wait}
 body.pdf-mode .sheet{box-shadow:none;border-radius:0}
+/* ---------- tab Bảng tin / Nhân sự (chỉ trên web) ---------- */
+.tabsw{display:none;gap:3px;background:rgba(0,0,0,.18);padding:3px;border-radius:10px;margin-left:6px}
+html.hosted .tabsw{display:inline-flex}
+.tabsw a{color:#fff;text-decoration:none;padding:5px 12px;border-radius:7px;font-weight:600;opacity:.88;white-space:nowrap}
+.tabsw a:hover{opacity:1;background:rgba(255,255,255,.12)}
+.tabsw a.on{background:#fff;color:var(--teal-dd);opacity:1}
+#hrFrame{display:none;position:fixed;left:0;right:0;bottom:0;width:100%;border:0;background:#f4f5f8}
+body.tab-hr #hrFrame{display:block}
+body.tab-hr{overflow:hidden}
+body.tab-hr .wrap,body.tab-hr .toolbar .status,body.tab-hr #selWeek,body.tab-hr #btnPrint,body.tab-hr #btnOpen,body.tab-hr #btnReconnect,body.tab-hr #btnReload,body.tab-hr #autoWrap,body.tab-hr .drop-hint{display:none!important}
 /* ---------- print ---------- */
 @page{size:A4 portrait;margin:10mm 11mm 10mm 11mm}
 @media print{
   body{background:#fff;font-size:12px}
-  .toolbar,.drop-hint,.no-print{display:none!important}
+  .toolbar,.drop-hint,.no-print,#hrFrame{display:none!important}
   .wrap{padding:0}
   .sheet{width:auto;box-shadow:none;padding:0;border-radius:0}
   .sec{break-inside:auto}
@@ -178,7 +188,7 @@ body.pdf-mode .sheet{box-shadow:none;border-radius:0}
 <body>
 <div class="toolbar no-print">
   <div class="in">
-    <div class="brand"><span class="dot"></span>Bảng tin An toàn hàng tuần</div>
+    <div class="brand"><span class="dot"></span><span id="brandTxt">Bảng tin An toàn hàng tuần</span><nav class="tabsw" id="mainTabs"><a href="#" data-t="bt" class="on">🦺 Bảng tin an toàn</a><a href="#nhan-su" data-t="hr">👥 Nhân sự</a></nav></div>
     <button class="btn" id="btnOpen" title="Chọn file Excel dữ liệu">📂 Mở file Excel</button>
     <button class="btn" id="btnReconnect" hidden>🔄 Kết nối lại</button>
     <button class="btn" id="btnReload" hidden title="Đọc lại file Excel ngay">⟳ Tải lại</button>
@@ -191,6 +201,7 @@ body.pdf-mode .sheet{box-shadow:none;border-radius:0}
 <input type="file" id="fileInput" accept=".xlsx,.xlsm" hidden>
 <div class="drop-hint">Thả file Excel vào đây</div>
 <div class="wrap"><div class="sheet" id="sheet"></div></div>
+<iframe id="hrFrame" title="Nhân sự Xưởng Phụ Trợ"></iframe>
 
 <script>
 "use strict";
@@ -628,7 +639,7 @@ $("btnReload").onclick=()=>readHandle(true);
 $("btnReconnect").onclick=async()=>{try{if(await handle.requestPermission({mode:"read"})==="granted"){showHandleUi();await readHandle(true);}}catch(e){setStatus("Không kết nối lại được: "+e.message,"err");}};
 $("selWeek").onchange=e=>{CUR=+e.target.value;followLatest=MODEL&&CUR===MODEL.weeks[MODEL.weeks.length-1].key;render();
   const x=MODEL.weeks.find(k=>k.key===CUR);if(VIEWER&&x)try{history.replaceState(null,"","#tuan-"+x.w+"-"+x.y);}catch(err){}};
-function applyHash(){const m=/^#tuan-(\d+)-(\d+)$/.exec(location.hash||"");if(m&&MODEL){const x=MODEL.weeks.find(k=>k.w===+m[1]&&k.y===+m[2]);if(x){CUR=x.key;followLatest=false;fillWeeks();render();}}}
+function applyHash(){if(HOSTED)setMainTab(location.hash==="#nhan-su");const m=/^#tuan-(\d+)-(\d+)$/.exec(location.hash||"");if(m&&MODEL){const x=MODEL.weeks.find(k=>k.w===+m[1]&&k.y===+m[2]);if(x){CUR=x.key;followLatest=false;fillWeeks();render();}}}
 addEventListener("hashchange",applyHash);
 const IN_FRAME=(()=>{try{return window.self!==window.top;}catch(e){return true;}})();
 $("btnPrint").onclick=()=>{if(IN_FRAME)exportPdf();else window.print();};
@@ -662,6 +673,24 @@ addEventListener("drop",async e=>{e.preventDefault();if(VIEWER)return;dc=0;docum
   const it=e.dataTransfer.items&&e.dataTransfer.items[0];
   if(it&&it.getAsFileSystemHandle){try{const h=await it.getAsFileSystemHandle();if(h&&h.kind==="file"){handle=h;IDB.set("handle",h);showHandleUi();followLatest=true;await readHandle(true);return;}}catch(err){}}
   const f=e.dataTransfer.files[0];if(f){followLatest=true;await loadBuffer(await f.arrayBuffer(),f.name);}});
+
+/* ===== Tab Bảng tin / Nhân sự (trang nhansu.html, dữ liệu qua /api/nhansu) ===== */
+let BT_TITLE=null;
+function sizeFrame(){const t=document.querySelector(".toolbar");$("hrFrame").style.top=t.offsetHeight+"px";$("hrFrame").style.height=(innerHeight-t.offsetHeight)+"px";}
+function setMainTab(hr){
+  const was=document.body.classList.contains("tab-hr");
+  document.body.classList.toggle("tab-hr",hr);
+  document.querySelectorAll("#mainTabs a").forEach(a=>a.classList.toggle("on",(a.dataset.t==="hr")===hr));
+  $("brandTxt").textContent=hr?"Xưởng Phụ Trợ":"Bảng tin An toàn hàng tuần";
+  if(hr){const f=$("hrFrame");if(!f.getAttribute("src"))f.src="nhansu.html";sizeFrame();if(!was)BT_TITLE=document.title;document.title="Nhân sự – Xưởng Phụ Trợ";}
+  else if(was){if(BT_TITLE)document.title=BT_TITLE;}
+}
+$("mainTabs").onclick=e=>{const a=e.target.closest("a");if(!a)return;e.preventDefault();
+  if(a.dataset.t==="hr"){if(location.hash!=="#nhan-su")location.hash="nhan-su";else setMainTab(true);return;}
+  const x=MODEL&&MODEL.weeks.find(k=>k.key===CUR);
+  if(x)location.hash="tuan-"+x.w+"-"+x.y;else{try{history.replaceState(null,"",location.pathname+location.search)}catch(err){}setMainTab(false);}};
+addEventListener("resize",()=>{if(document.body.classList.contains("tab-hr"))sizeFrame();});
+if(HOSTED&&location.hash==="#nhan-su")setMainTab(true);
 
 (async function init(){
   if(HOSTED)setStatus("Đang tải dữ liệu bảng tin…");

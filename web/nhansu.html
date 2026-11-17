@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nhân sự – Xưởng Phụ Trợ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f5f8; --card:#ffffff; --line:#e6e7ec; --line2:#eef0f4;
+  --ink:#16171c; --ink2:#52545e; --ink3:#8a8c96;
+  --accent:#2F6F70; --accent-soft:#E6F2F2;
+  --s-blue:#2a78d6; --s-aqua:#1baf7a; --s-violet:#6250d6; --s-orange:#eb6834; --s-red:#e34948;
+  --good:#0f8a4a; --good-soft:#e5f6ec; --warn:#a76400; --warn-soft:#fdf2dc; --bad:#c23131; --bad-soft:#fde9e9;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Roboto,Arial,"Helvetica Neue",sans-serif;font-size:14px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 60px}
+header.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .in{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{width:40px;height:40px;border-radius:11px;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);flex:none}
+.brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.01em}
+.brand .sub{font-size:12px;color:var(--ink3);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff;white-space:nowrap}
+.pill.admin{background:var(--good-soft);color:var(--good);border-color:#bfe6cf}
+.pill.view{background:#f1f2f5;color:var(--ink2)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:#cfd1d9;background:#fafafc}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#1F4F50}
+.btn.danger{color:var(--bad);border-color:#f2c9c9}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn svg{width:15px;height:15px}
+select.sel{padding:7px 10px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:13px}
+.sync{font-size:12px;color:var(--ink3)}
+.banner{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:13px;display:none}
+.banner.show{display:block}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;cursor:default}
+.kpi.click{cursor:pointer}.kpi.click:hover{border-color:#cfd1d9}
+.kpi .lab{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.kpi .val{font-size:28px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .hint{font-size:12px;color:var(--ink2);margin-top:2px}
+.kpi .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px;overflow-x:auto}
+.tab{flex:1;min-width:max-content;padding:9px 14px;border-radius:9px;border:0;background:transparent;cursor:pointer;font-weight:500;color:var(--ink2);font-size:13px}
+.tab.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.grid2{display:grid;grid-template-columns:minmax(300px,2fr) 3fr;gap:16px;margin-bottom:16px}
+.grid2.eq{grid-template-columns:1fr 1fr}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px;min-width:0}
+.grid2 .card{margin-bottom:0}
+.card h3{margin:0 0 4px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card h3 .bar{width:3px;height:15px;border-radius:2px;background:var(--accent)}
+.card .desc{margin:0 0 14px;color:var(--ink3);font-size:12.5px}
+.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.seg{display:inline-flex;background:#f1f2f5;border-radius:8px;padding:3px}
+.seg button{border:0;background:transparent;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--ink2)}
+.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.glist{display:flex;flex-direction:column;gap:8px}
+.gitem{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;cursor:pointer;background:#fff}
+.gitem:hover{border-color:#b9d8d8;background:#f3f9f9}
+.gitem .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.gitem .t{font-weight:600;font-size:13px}
+.gitem .s{font-size:11.5px;color:var(--ink3)}
+.gitem .n{margin-left:auto;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.gitem .n small{display:block;font-weight:500;color:var(--ink3);font-size:11px}
+.gitem .chev{color:var(--ink3)}
+.chartbox{position:relative;height:300px}
+.chartbox.tall{height:420px}
+.note{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f6f7fa;font-size:12.5px;color:var(--ink2)}
+.note b{color:var(--ink)}
+.poscards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pc{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;cursor:pointer}
+.pc:hover{border-color:#b9d8d8;background:#f3f9f9}
+.pc .t{font-size:12px;color:var(--ink2);font-weight:600}
+.pc .v{font-size:20px;font-weight:700;margin-top:2px}
+.pc .v small{font-size:12px;color:var(--ink3);font-weight:500}
+.meter{height:4px;border-radius:2px;background:#eceef3;margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--s-violet);border-radius:2px}
+.insights{display:flex;flex-direction:column;gap:12px}
+.ins{display:flex;gap:10px}
+.ins .ck{width:20px;height:20px;border-radius:50%;background:var(--good-soft);color:var(--good);display:grid;place-items:center;flex:none;font-size:12px;font-weight:700}
+.ins .ck.w{background:var(--warn-soft);color:var(--warn)}
+.ins .t{font-weight:600;font-size:13px}
+.ins .s{font-size:12.5px;color:var(--ink2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip b{font-weight:700;margin-left:4px;opacity:.8}
+.minikpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.filters input,.filters select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:13px}
+.filters .search{grid-column:span 1}
+.listwrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.tblwrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);font-weight:600;padding:9px 6px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+th.ns{cursor:default}
+td{padding:9px 6px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tr.row{cursor:pointer}
+tr.row:hover td{background:#f3f9f9}
+tr.row.sel td{background:var(--accent-soft)}
+td.num{font-variant-numeric:tabular-nums;text-align:right}
+th.num{text-align:right}
+.tag{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11.5px;font-weight:600;background:#f1f2f5;color:var(--ink2);white-space:nowrap}
+.tag.g{background:var(--good-soft);color:var(--good)}
+.tag.w{background:var(--warn-soft);color:var(--warn)}
+.tag.b{background:var(--bad-soft);color:var(--bad)}
+.tag.a{background:var(--accent-soft);color:var(--accent)}
+.badge-n{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:12px}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12.5px;color:var(--ink3);gap:10px;flex-wrap:wrap}
+.pager .pg{display:flex;gap:4px}
+.pager .pg button{min-width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.pager .pg button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.detail{position:sticky;top:84px}
+.empty{color:var(--ink3);text-align:center;padding:40px 10px;font-size:13px}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:14px 0}
+.dl div span{display:block;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em}
+.dl div b{font-weight:600}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.iconbtn{border:0;background:transparent;cursor:pointer;padding:5px;border-radius:7px;color:var(--ink3)}
+.iconbtn:hover{background:#f0f0f5;color:var(--ink)}
+.iconbtn.del:hover{color:var(--bad);background:var(--bad-soft)}
+.iconbtn svg{width:15px;height:15px;display:block}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(20,20,30,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.ov.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:min(640px,100%);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal.wide{width:min(760px,100%)}
+.modal.sm{width:min(440px,100%)}
+.mh{display:flex;align-items:flex-start;gap:12px;padding:18px 20px 12px;border-bottom:1px solid var(--line2)}
+.mh h2{margin:0;font-size:16px}
+.mh p{margin:2px 0 0;font-size:12.5px;color:var(--ink3)}
+.mh .x{margin-left:auto}
+.mb{padding:16px 20px;overflow:auto}
+.mf{padding:12px 20px;border-top:1px solid var(--line2);display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.person{border:1px solid var(--line2);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.person:hover{border-color:#b9d8d8;background:#f3f9f9}
+.person .h{display:flex;gap:10px;align-items:center}
+.person .id{font-size:11.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.person .nm{font-weight:700}
+.person .h .tag{margin-left:auto}
+.person .m{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;font-size:12px}
+.person .m span{display:block;color:var(--ink3);font-size:11px}
+.form{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink2)}
+.form input,.form select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-weight:400;color:var(--ink);font-size:13.5px}
+.form .full{grid-column:1/-1}
+.cbgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.form label.cb{flex-direction:row}
+.cb{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-weight:500;color:var(--ink);font-size:13px}
+.cb.on{border-color:#9fdcb9;background:var(--good-soft)}
+.cb input{accent-color:var(--good)}
+.err{color:var(--bad);font-size:12.5px;margin-right:auto}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2030;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:80;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.drop{border:1.5px dashed #cfd1d9;border-radius:12px;padding:24px;text-align:center;color:var(--ink2);cursor:pointer}
+.drop:hover{border-color:var(--accent);background:#f3f9f9}
+.hidden{display:none!important}
+.adm{} body:not(.is-admin) .adm{display:none!important}
+@media (max-width:980px){.kpis,.minikpis{grid-template-columns:repeat(2,1fr)}.grid2,.grid2.eq,.listwrap{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,1fr)}.detail{position:static}.form{grid-template-columns:1fr 1fr}.cbgrid{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.kpis,.minikpis{grid-template-columns:1fr 1fr}.tools{margin-left:0}.person .m{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+  <div class="brand"><h1>Quản trị nhân sự</h1><div class="sub">Xưởng Phụ Trợ</div></div>
+  <div class="tools">
+    <button id="btnLogin" class="btn">🔒 Đăng nhập quản trị</button>
+    <label class="pill" style="gap:8px">Thời điểm <select id="yearSel" class="sel" style="padding:2px 6px;border:0"></select></label>
+    <button class="btn adm" id="btnImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Nhập dữ liệu</button>
+    <button class="btn" id="btnCsv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Xuất CSV</button>
+    <button class="btn" id="btnJson">Xuất JSON (Backup)</button>
+    <button class="btn adm" id="btnRestore" title="Bỏ mọi chỉnh sửa trên web, quay về file data/nhansu.json">Khôi phục file gốc</button>
+    <span class="sync" id="sync"></span>
+  </div>
+</div></header>
+
+<div class="wrap">
+  <div class="banner" id="banner"></div>
+
+  <section class="kpis">
+    <div class="kpi click" data-kpi="all"><div><div class="lab">Tổng số nhân sự</div><div class="val" id="kTotal">–</div><div class="hint" id="kTotalH"></div></div><div class="ic" style="background:#eaf2fc;color:var(--s-blue)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+    <div class="kpi"><div><div class="lab">Độ tuổi trung bình</div><div class="val" id="kAge">–</div><div class="hint" id="kAgeH"></div></div><div class="ic" style="background:#e7f6ef;color:var(--s-aqua)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div></div>
+    <div class="kpi"><div><div class="lab">Đã đào tạo (lượt)</div><div class="val" id="kTrain">–</div><div class="hint" id="kTrainH"></div></div><div class="ic" style="background:#efedfb;color:var(--s-violet)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg></div></div>
+    <div class="kpi click" data-kpi="retire5"><div><div class="lab">Nghỉ hưu trong 5 năm</div><div class="val" id="kRet">–</div><div class="hint" id="kRetH"></div></div><div class="ic" style="background:#fdeceb;color:var(--s-red)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div></div>
+  </section>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="overview">Độ tuổi &amp; Tổng quan</button>
+    <button class="tab" data-tab="training">Đào tạo &amp; Cương vị</button>
+    <button class="tab" data-tab="salary">Lương &amp; Phụ cấp</button>
+    <button class="tab" data-tab="list">Danh sách nhân sự</button>
+  </nav>
+
+  <!-- TAB 1 -->
+  <section id="tab-overview">
+    <div class="grid2">
+      <div class="card"><h3><span class="bar"></span>Phân phối theo nhóm tuổi</h3><p class="desc">Bấm vào từng nhóm để xem danh sách nhân sự.</p><div class="glist" id="ageList"></div></div>
+      <div class="card"><h3><span class="bar"></span>Biểu đồ phân bố độ tuổi</h3><p class="desc">Số nhân sự theo nhóm tuổi tại năm đang xem. Bấm vào cột để xem danh sách.</p><div class="chartbox"><canvas id="cAge"></canvas></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3><span class="bar"></span>Thông tin thâm niên làm việc</h3><p class="desc">Số năm làm việc tính từ năm vào nhà máy.</p><div class="glist" id="senList"></div><div class="note" id="senNote"></div></div>
+      <div class="card"><div class="chead"><div><h3><span class="bar"></span>Biểu đồ phân bố số năm làm việc</h3><p class="desc" id="senDesc"></p></div><div class="seg" id="senMode"><button class="on" data-m="band">Theo dải</button><button data-m="cum">Lũy kế</button></div></div><div class="chartbox"><canvas id="cSen"></canvas></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3><span class="bar"></span>Lộ trình nghỉ hưu</h3><p class="desc">Số nhân sự đến tuổi nghỉ hưu trong N năm tới (lũy kế), theo tuổi nghỉ hưu ghi trong hồ sơ.</p><div class="glist" id="retList"></div></div>
+      <div class="card"><h3><span class="bar"></span>Biểu đồ dự báo nghỉ hưu</h3><p class="desc">Lũy kế số người nghỉ hưu tính từ năm đang xem.</p><div class="chartbox"><canvas id="cRet"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- TAB 2 -->
+  <section id="tab-training" class="hidden">
+    <div class="card"><div class="chead"><div><h3><span class="bar"></span>Số người được đào tạo theo từng cương vị</h3><p class="desc">Tổng hợp từ các ô đánh dấu đào tạo trong hồ sơ. Bấm vào thanh để xem danh sách.</p></div><span class="pill" id="trainTotalPill"></span></div><div class="chartbox tall"><canvas id="cTrain"></canvas></div></div>
+    <div class="card"><h3><span class="bar"></span>Độ phủ đào tạo theo cương vị</h3><p class="desc">Tỷ lệ trên tổng nhân sự xưởng.</p><div class="poscards" id="posCards"></div></div>
+    <div class="grid2 eq">
+      <div class="card"><h3><span class="bar"></span>Phân phối số cương vị đã hoàn thành</h3><p class="desc">Mỗi người đã được đào tạo bao nhiêu cương vị. Bấm vào cột để xem danh sách.</p><div class="chartbox"><canvas id="cDone"></canvas></div></div>
+      <div class="card"><h3><span class="bar"></span>Nhận xét chuyên môn &amp; đào tạo</h3><p class="desc">Tự động tính từ dữ liệu hiện tại.</p><div class="insights" id="trainIns"></div></div>
+    </div>
+  </section>
+
+  <!-- TAB 3 -->
+  <section id="tab-salary" class="hidden">
+    <div class="chips" id="gradeChips"></div>
+    <div class="minikpis">
+      <div class="kpi"><div><div class="lab">Bậc lương phổ biến</div><div class="val" id="sTopStep">–</div><div class="hint" id="sTopStepH"></div></div></div>
+      <div class="kpi click" id="sRaiseCard"><div><div class="lab" id="sRaiseL">Nâng lương năm nay</div><div class="val" id="sRaise">–</div><div class="hint">Bấm để xem danh sách</div></div></div>
+      <div class="kpi"><div><div class="lab">Hệ số lương TB</div><div class="val" id="sCoef">–</div><div class="hint" id="sCoefH"></div></div></div>
+      <div class="kpi"><div><div class="lab">Tổng phụ cấp / tháng</div><div class="val" id="sAllow">–</div><div class="hint" id="sAllowH"></div></div></div>
+    </div>
+    <div class="card"><h3><span class="bar"></span>Phân phối số lượng nhân sự theo bậc lương</h3><p class="desc">Bậc lương / số bậc tối đa của ngạch. Bấm vào cột để xem danh sách.</p><div class="chartbox"><canvas id="cStep"></canvas></div></div>
+    <div class="grid2 eq">
+      <div class="card"><h3><span class="bar"></span>Phân phối theo hệ số lương</h3><p class="desc">Nhóm theo dải hệ số. Bấm vào cột để xem danh sách.</p><div class="chartbox"><canvas id="cCoef"></canvas></div></div>
+      <div class="card"><h3><span class="bar"></span>Báo cáo &amp; nhận xét</h3><p class="desc">Tự động tính từ dữ liệu hiện tại.</p><div class="insights" id="salIns"></div></div>
+    </div>
+  </section>
+
+  <!-- TAB 4 -->
+  <section id="tab-list" class="hidden">
+    <div class="card">
+      <div class="chead" style="margin-bottom:12px"><h3><span class="bar"></span>Bộ lọc tìm kiếm nhân viên</h3><button class="btn ghost" id="btnClear">Xóa bộ lọc</button></div>
+      <div class="filters" id="filters">
+        <input class="search" id="fQ" placeholder="Tìm mã NV, họ tên, cương vị…">
+        <select id="fAge"></select><select id="fPos"></select><select id="fDone"></select><select id="fTrain"></select>
+        <select id="fRet"></select><select id="fSen"></select><select id="fStep"></select><select id="fGrade"></select><select id="fRaise"></select>
+        <select id="fAllow"></select><select id="fGender"></select>
+      </div>
+    </div>
+    <div class="listwrap">
+      <div class="card">
+        <div class="chead" style="margin-bottom:10px"><h3><span class="bar"></span>Kết quả tìm kiếm (<span id="resN">0</span> nhân sự)</h3><button class="btn primary adm" id="btnAdd">+ Thêm nhân sự</button></div>
+        <div class="tblwrap"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+        <div class="pager"><span id="pgInfo"></span><div class="pg" id="pg"></div><label>Số dòng/trang <select class="sel" id="pgSize"><option>10</option><option selected>15</option><option>25</option><option>50</option><option value="9999">Tất cả</option></select></label></div>
+      </div>
+      <div class="card detail" id="detail"><div class="empty"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#b5b7c0" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div style="font-weight:600;color:var(--ink2);margin-top:8px">Chi tiết nhân sự</div>Chọn một nhân viên trong bảng để xem hồ sơ chi tiết.</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- Modals -->
+<div class="ov" id="ovList"><div class="modal"><div class="mh"><div><h2 id="mlTitle"></h2><p id="mlSub"></p></div><button class="iconbtn x" data-close>✕</button></div><div class="mb" id="mlBody"></div><div class="mf"><button class="btn" id="mlToTable">Xem trong bảng danh sách</button><button class="btn" data-close>Đóng</button></div></div></div>
+
+<div class="ov" id="ovEdit"><div class="modal wide"><div class="mh"><div><h2 id="meTitle"></h2><p id="meSub">Số cương vị đã hoàn thành được tính tự động từ các ô đào tạo.</p></div><button class="iconbtn x" data-close>✕</button></div>
+<div class="mb"><form class="form" id="fm" autocomplete="off">
+  <label>Mã NV *<input name="id" required></label>
+  <label class="full" style="grid-column:span 2">Họ và tên *<input name="name" required></label>
+  <label>Năm sinh *<input name="birth" type="number" min="1940" max="2015" required></label>
+  <label>Giới tính<select name="gender"><option>Nam</option><option>Nữ</option></select></label>
+  <label>Tuổi nghỉ hưu<input name="retireAge" type="number" min="50" max="70"></label>
+  <label>Năm vào nhà máy *<input name="join" type="number" min="1980" max="2100" required></label>
+  <label>Cương vị đang đảm nhận<input name="pos" list="posOpts"></label>
+  <label>Ngạch lương<input name="grade" list="gradeOpts"></label>
+  <label>Bậc lương (vd 6/16)<input name="step" pattern="\d+/\d+"></label>
+  <label>Hệ số lương<input name="coef" type="number" step="0.01" min="0"></label>
+  <label>Năm tăng lương gần nhất<input name="raise" type="number" min="1980" max="2100"></label>
+  <label class="full">Phụ cấp (VNĐ, nhiều khoản dùng dấu +, vd 2000000+3000000)<input name="allow" pattern="[0-9+ ]*"></label>
+  <div class="full"><div style="font-size:12px;font-weight:600;color:var(--ink2)">Đánh dấu các cương vị đã được đào tạo (<span id="doneN">0</span> cương vị)</div><div class="cbgrid" id="cbgrid"></div></div>
+</form></div>
+<div class="mf"><span class="err" id="meErr"></span><button class="btn" data-close>Hủy bỏ</button><button class="btn primary" id="meSave">Lưu thay đổi</button></div></div></div>
+
+<div class="ov" id="ovConfirm"><div class="modal sm"><div class="mh"><div><h2 id="mcTitle"></h2></div></div><div class="mb" id="mcBody"></div><div class="mf"><button class="btn" data-close>Hủy</button><button class="btn primary" id="mcOk">Đồng ý</button></div></div></div>
+
+<div class="ov" id="ovImport"><div class="modal"><div class="mh"><div><h2>Nhập dữ liệu nhân sự</h2><p>File CSV cùng định dạng "Báo cáo nhân sự" (xuất từ Excel), hoặc file JSON backup xuất từ trang này.</p></div><button class="iconbtn x" data-close>✕</button></div>
+<div class="mb"><div class="drop" id="drop"><b>Bấm để chọn file</b> hoặc kéo thả file vào đây<br><span style="font-size:12px;color:var(--ink3)">.csv hoặc .json</span></div><input type="file" id="fileIn" accept=".csv,.json,text/csv,application/json" class="hidden">
+<div id="impPreview" style="margin-top:14px"></div>
+</div>
+<div class="mf"><span class="err" id="impErr"></span><button class="btn" data-close>Hủy</button><button class="btn primary" id="impOk" disabled>Thay thế dữ liệu</button></div></div></div>
+
+<div class="ov" id="ovLogin"><div class="modal sm"><div class="mh"><div><h2>Đăng nhập quản trị</h2><p>Quản trị viên mới được thêm, sửa, xóa và nhập dữ liệu.</p></div><button class="iconbtn x" data-close>✕</button></div>
+<form class="mb" id="loginForm"><input type="password" id="pwIn" placeholder="Mật khẩu quản trị" autocomplete="current-password" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px"><div class="err" id="pwErr" style="margin-top:8px"></div></form>
+<div class="mf"><button class="btn" data-close>Hủy</button><button class="btn primary" id="pwOk">Đăng nhập</button></div></div></div>
+<datalist id="posOpts"></datalist><datalist id="gradeOpts"></datalist>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+// ---------- constants ----------
+const TRAIN = [["TC","Trưởng ca"],["DCS","DCS"],["NH","Nồi hơi"],["GT","GT&HRSG"],["RIVER","RIVER"],["DEMI","Demi"],["NITO","Nitơ-MN"],["RAW","RAW"],["NH3","NH3-FLARE"],["XLNT","XLNT"],["NHR","NHR"]];
+const TRAIN_LABEL = Object.fromEntries(TRAIN);
+const C = {blue:"#2a78d6",aqua:"#1baf7a",violet:"#6250d6",orange:"#eb6834",red:"#e34948"};
+const NOW = new Date().getFullYear();
+const AGE_G = [
+  {k:"a1",l:"Dưới 33 tuổi",s:"Lực lượng trẻ",t:a=>a<=32},
+  {k:"a2",l:"33 – 42 tuổi",s:"Nòng cốt kế cận",t:a=>a>=33&&a<=42},
+  {k:"a3",l:"43 – 52 tuổi",s:"Lực lượng chính",t:a=>a>=43&&a<=52},
+  {k:"a4",l:"53 – 62 tuổi",s:"Chuẩn bị nghỉ hưu",t:a=>a>=53&&a<=62},
+  {k:"a5",l:"Trên 62 tuổi",s:"Quá tuổi nghỉ hưu",t:a=>a>62}];
+const AGE_COL = ["#2a78d6","#2a78d6","#2a78d6","#2a78d6","#2a78d6"];
+const SEN_G = [
+  {k:"s1",l:"Dưới 5 năm",s:"Mới vào",t:y=>y<5,cum:"≤ 5 năm",c:y=>y<=5},
+  {k:"s2",l:"5 – 10 năm",s:"Đã có kinh nghiệm",t:y=>y>=5&&y<=10,cum:"≤ 10 năm",c:y=>y<=10},
+  {k:"s3",l:"11 – 15 năm",s:"Vững tay nghề",t:y=>y>=11&&y<=15,cum:"≤ 15 năm",c:y=>y<=15},
+  {k:"s4",l:"16 – 20 năm",s:"Lâu năm",t:y=>y>=16&&y<=20,cum:"≤ 20 năm",c:y=>y<=20},
+  {k:"s5",l:"21 – 25 năm",s:"Gắn bó từ đầu",t:y=>y>=21&&y<=25,cum:"≤ 25 năm",c:y=>y<=25},
+  {k:"s6",l:"Trên 25 năm",s:"",t:y=>y>25,cum:"Tất cả",c:y=>true}];
+const RET_G = [5,10,15,20,25,30];
+const COEF_G = [
+  {l:"Dưới 3,00",t:c=>c<3},{l:"3,00 – 3,99",t:c=>c>=3&&c<4},{l:"4,00 – 4,99",t:c=>c>=4&&c<5},{l:"5,00 – 6,99",t:c=>c>=5&&c<7},{l:"Từ 7,00",t:c=>c>=7}];
+
+// ---------- state ----------
+const S = {rows:[], meta:{}, year:NOW, admin:false, db:null, ref:null, origRef:null, loaded:false,
+  tab:"overview", senMode:"band", grade:"ALL", sel:null, page:1, sort:{k:"id",d:1}, filters:{}};
+const charts = {};
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => n.toLocaleString("vi-VN");
+const fmt1 = n => n.toLocaleString("vi-VN",{minimumFractionDigits:1,maximumFractionDigits:1});
+const fmt2 = n => n.toLocaleString("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const allowSum = a => String(a||"").split("+").map(x=>parseInt(x.replace(/\D/g,""))||0).reduce((p,c)=>p+c,0);
+const money = n => n>=1e6 ? fmt1(n/1e6)+" tr" : fmt(n);
+function D(r){ // derived
+  const age = S.year - r.birth, ra = r.retireAge || (r.gender==="Nữ"?60:62);
+  const [st,mx] = String(r.step||"").split("/").map(x=>parseInt(x));
+  return {...r, age, ra, left: ra-age, sen: Math.max(0,S.year-r.join), done:(r.trained||[]).length, stepN:st||0, stepMax:mx||0, allowN: allowSum(r.allow), retireYear: r.birth+ra};
+}
+const rowsD = () => S.rows.filter(r=>r.join<=S.year).map(D);
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600)}
+function openOv(id){$(id).classList.add("show")}
+function closeOv(el){el.closest(".ov").classList.remove("show")}
+document.querySelectorAll(".ov").forEach(o=>{o.addEventListener("click",e=>{if(e.target===o||e.target.closest("[data-close]"))o.classList.remove("show")})});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".ov.show").forEach(o=>o.classList.remove("show"))});
+function confirmBox(title,html,okLabel="Đồng ý",danger=false){
+  return new Promise(res=>{$("mcTitle").textContent=title;$("mcBody").innerHTML=html;const ok=$("mcOk");ok.textContent=okLabel;ok.className="btn "+(danger?"danger":"primary");
+    const ov=$("ovConfirm");openOv("ovConfirm");
+    const done=v=>{ov.classList.remove("show");ok.onclick=null;ov.removeEventListener("click",cl);res(v)};
+    const cl=e=>{if(e.target===ov||e.target.closest("[data-close]"))done(false)};
+    ov.addEventListener("click",cl);ok.onclick=()=>done(true);});
+}
+
+// ---------- chart factory ----------
+Chart.defaults.font.family='"Segoe UI",Roboto,Arial,sans-serif';
+Chart.defaults.font.size=12;Chart.defaults.color="#52545e";
+function barChart(id,{labels,data,color,horizontal=false,onClick,tip,highlight}){
+  const ctx=$(id);
+  const bg = data.map((_,i)=> highlight!=null && highlight!==i ? color+"55" : color);
+  const cfg={type:"bar",data:{labels,datasets:[{data,backgroundColor:bg,hoverBackgroundColor:color,borderRadius:4,borderSkipped:"start",maxBarThickness:horizontal?22:56,categoryPercentage:.7,barPercentage:.9}]},
+    options:{indexAxis:horizontal?"y":"x",responsive:true,maintainAspectRatio:false,animation:{duration:250},
+      layout:{padding:{top:18,right:horizontal?36:4}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:"#1f2030",padding:10,cornerRadius:8,displayColors:false,callbacks:{label:c=>tip?tip(c.dataIndex,c.raw):`${c.raw} người`}}},
+      scales:{[horizontal?"y":"x"]:{grid:{display:false},border:{color:"#d9dbe2"},ticks:{autoSkip:false,maxRotation:0}},[horizontal?"x":"y"]:{beginAtZero:true,grid:{color:"#eef0f4"},border:{display:false},ticks:{precision:0}}},
+      onHover:(e,els)=>{e.native.target.style.cursor=els.length&&onClick?"pointer":"default"},
+      onClick:(e,els)=>{if(els.length&&onClick)onClick(els[0].index)}},
+    plugins:[{id:"vlabels",afterDatasetsDraw(ch){const {ctx}=ch;const m=ch.getDatasetMeta(0);ctx.save();ctx.font='600 11.5px "Segoe UI",Roboto,Arial,sans-serif';ctx.fillStyle="#16171c";
+      m.data.forEach((b,i)=>{const v=ch.data.datasets[0].data[i];if(!v)return;if(horizontal){ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText(v,b.x+6,b.y)}else{ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillText(v,b.x,b.y-4)}});ctx.restore()}}]};
+  if(charts[id]){charts[id].destroy()}
+  charts[id]=new Chart(ctx,cfg);
+}
+
+// ---------- people list modal ----------
+let lastListFilter=null;
+function personCard(r){
+  const lt = r.left<=0?`<span class="tag b">Đã đến tuổi hưu</span>`:r.left<=5?`<span class="tag w">Còn ${r.left} năm đến hưu</span>`:`<span class="tag">Còn ${r.left} năm đến hưu</span>`;
+  return `<div class="person" data-id="${esc(r.id)}"><div class="h"><span class="id">${esc(r.id)}</span><span class="nm">${esc(r.name)}</span><span class="tag a">${esc(r.pos)}</span></div>
+  <div class="m"><div><span>Tuổi / Năm sinh</span>${r.age} tuổi (${r.birth})</div><div><span>Thâm niên</span>${r.sen} năm (vào ${r.join})</div><div><span>Ngạch – Bậc – HS</span>${esc(r.grade)} · ${esc(r.step)} · ${fmt2(r.coef)}</div></div>
+  <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${lt}${r.trained.length?`<span style="font-size:11.5px;color:var(--ink3);margin-left:4px">Đào tạo:</span>`+r.trained.map(k=>`<span class="tag g">${esc(TRAIN_LABEL[k]||k)}</span>`).join(""):""}</div></div>`;
+}
+function showList(title,sub,list,filterForTable){
+  $("mlTitle").textContent=title;$("mlSub").textContent=`${list.length} nhân sự · ${sub||""}`;
+  $("mlBody").innerHTML=list.length?list.map(personCard).join(""):`<div class="empty">Không có nhân sự nào.</div>`;
+  lastListFilter=filterForTable||null;$("mlToTable").classList.toggle("hidden",!filterForTable);
+  openOv("ovList");
+}
+$("mlBody").addEventListener("click",e=>{const p=e.target.closest(".person");if(!p)return;$("ovList").classList.remove("show");gotoPerson(p.dataset.id)});
+$("mlToTable").onclick=()=>{$("ovList").classList.remove("show");if(lastListFilter){clearFilters(false);Object.assign(S.filters,lastListFilter);syncFilterUI();setTab("list");renderList()}};
+function gotoPerson(id){S.sel=id;setTab("list");const list=filtered();const i=list.findIndex(r=>r.id===id);if(i<0){clearFilters(false);syncFilterUI()}const l2=filtered();const j=l2.findIndex(r=>r.id===id);S.page=Math.floor(Math.max(0,j)/pgSize())+1;renderList()}
+
+// ---------- render: KPIs ----------
+function renderKpis(){
+  const R=rowsD(), n=R.length;
+  $("kTotal").textContent=n;
+  const fem=R.filter(r=>r.gender==="Nữ").length;$("kTotalH").textContent=`${n-fem} nam · ${fem} nữ`;
+  $("kAge").textContent=n?fmt1(R.reduce((a,r)=>a+r.age,0)/n):"–";$("kAgeH").textContent=`Tính tại năm ${S.year}`;
+  const tr=R.reduce((a,r)=>a+r.done,0);$("kTrain").textContent=tr;$("kTrainH").textContent=n?`TB ${fmt1(tr/n)} cương vị/người`:"";
+  const r5=R.filter(r=>r.left<=5).length;$("kRet").textContent=r5;$("kRetH").textContent=n?`${Math.round(r5/n*100)}% nhân sự xưởng`:"";
+}
+document.querySelector('[data-kpi="all"]').onclick=()=>{clearFilters(false);syncFilterUI();setTab("list")};
+document.querySelector('[data-kpi="retire5"]').onclick=()=>{const L=rowsD().filter(r=>r.left<=5).sort((a,b)=>a.left-b.left);showList("Nhân sự nghỉ hưu trong 5 năm tới",`tính từ năm ${S.year}`,L,{ret:"5"})};
+
+// ---------- TAB overview ----------
+function gItem(color,t,s,n,total,attr){return `<div class="gitem" ${attr}><span class="dot" style="background:${color}"></span><div><div class="t">${t}</div><div class="s">${s}</div></div><div class="n">${n} người<small>${total?Math.round(n/total*100):0}% tổng số</small></div><span class="chev">›</span></div>`}
+function renderOverview(){
+  const R=rowsD(), n=R.length;
+  // age
+  const ac=AGE_G.map(g=>R.filter(r=>g.t(r.age)));
+  const ageShow=AGE_G.map((g,i)=>i).filter(i=>i<4||ac[i].length);
+  $("ageList").innerHTML=ageShow.map(i=>gItem(C.blue,AGE_G[i].l,AGE_G[i].s,ac[i].length,n,`data-age="${i}"`)).join("");
+  barChart("cAge",{labels:ageShow.map(i=>AGE_G[i].l),data:ageShow.map(i=>ac[i].length),color:C.blue,onClick:j=>openAge(ageShow[j]),tip:(i,v)=>`${v} người · ${n?Math.round(v/n*100):0}%`});
+  // seniority
+  const sc=SEN_G.map(g=>R.filter(r=>g.t(r.sen)));
+  $("senList").innerHTML=SEN_G.map((g,i)=>gItem(C.aqua,g.l,g.s||`${S.year-25} trở về trước`,sc[i].length,n,`data-sen="${i}"`)).join("");
+  const avg=n?R.reduce((a,r)=>a+r.sen,0)/n:0;
+  const big=sc.reduce((b,x,i)=>x.length>sc[b].length?i:b,0);
+  $("senNote").innerHTML=`Thâm niên trung bình: <b>${fmt1(avg)} năm</b>. Nhóm đông nhất: <b>${SEN_G[big].l}</b> (${sc[big].length} người).`;
+  const cum=S.senMode==="cum";
+  $("senDesc").textContent=cum?"Lũy kế: số người có thâm niên không vượt quá mốc.":"Số người theo từng dải thâm niên.";
+  const sd=cum?SEN_G.map(g=>R.filter(r=>g.c(r.sen))):sc;
+  barChart("cSen",{labels:SEN_G.map(g=>cum?g.cum:g.l),data:sd.map(x=>x.length),color:C.aqua,onClick:i=>cum?showList(`Thâm niên ${SEN_G[i].cum}`,`năm ${S.year}`,sd[i].sort((a,b)=>a.sen-b.sen)):openSen(i),tip:(i,v)=>`${v} người · ${n?Math.round(v/n*100):0}%`});
+  // retirement
+  const rc=RET_G.map(y=>R.filter(r=>r.left<=y));
+  $("retList").innerHTML=RET_G.map((y,i)=>gItem(C.red,`Trong ${y} năm tới`,`Đến năm ${S.year+y}`,rc[i].length,n,`data-ret="${i}"`)).join("");
+  barChart("cRet",{labels:RET_G.map(y=>`≤ ${y} năm`),data:rc.map(x=>x.length),color:C.red,onClick:openRet,tip:(i,v)=>`${v} người nghỉ hưu đến năm ${S.year+RET_G[i]}`});
+}
+function openAge(i){const L=rowsD().filter(r=>AGE_G[i].t(r.age)).sort((a,b)=>b.age-a.age);showList(`Nhân sự nhóm tuổi: ${AGE_G[i].l}`,`năm ${S.year}`,L,{age:String(i)})}
+function openSen(i){const L=rowsD().filter(r=>SEN_G[i].t(r.sen)).sort((a,b)=>b.sen-a.sen);showList(`Nhân sự thâm niên: ${SEN_G[i].l}`,`năm ${S.year}`,L,{sen:String(i)})}
+function openRet(i){const L=rowsD().filter(r=>r.left<=RET_G[i]).sort((a,b)=>a.left-b.left);showList(`Danh sách nghỉ hưu: trong ${RET_G[i]} năm`,`đến năm ${S.year+RET_G[i]}`,L,{ret:String(RET_G[i])})}
+$("ageList").onclick=e=>{const g=e.target.closest("[data-age]");if(g)openAge(+g.dataset.age)};
+$("senList").onclick=e=>{const g=e.target.closest("[data-sen]");if(g)openSen(+g.dataset.sen)};
+$("retList").onclick=e=>{const g=e.target.closest("[data-ret]");if(g)openRet(+g.dataset.ret)};
+$("senMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.senMode=b.dataset.m;[...$("senMode").children].forEach(x=>x.classList.toggle("on",x===b));renderOverview()};
+
+// ---------- TAB training ----------
+function renderTraining(){
+  const R=rowsD(), n=R.length;
+  const cnt=TRAIN.map(([k,l])=>({k,l,n:R.filter(r=>r.trained.includes(k)).length})).sort((a,b)=>b.n-a.n);
+  const tot=cnt.reduce((a,x)=>a+x.n,0);$("trainTotalPill").textContent=`Tổng: ${tot} lượt`;
+  barChart("cTrain",{labels:cnt.map(x=>x.l),data:cnt.map(x=>x.n),color:C.violet,horizontal:true,onClick:i=>openTrain(cnt[i].k),tip:(i,v)=>`${v} người đã đào tạo · ${n?Math.round(v/n*100):0}% xưởng`});
+  $("posCards").innerHTML=cnt.map(x=>`<div class="pc" data-k="${x.k}"><div class="t">${esc(x.l)}</div><div class="v">${x.n} <small>người</small></div><div class="meter"><i style="width:${n?x.n/n*100:0}%"></i></div></div>`).join("");
+  const maxD=Math.max(5,...R.map(r=>r.done));const dl=[...Array(maxD+1).keys()];
+  const dc=dl.map(d=>R.filter(r=>r.done===d));
+  barChart("cDone",{labels:dl.map(d=>`${d} cương vị`),data:dc.map(x=>x.length),color:C.violet,onClick:i=>showList(`Nhân sự đã hoàn thành ${i} cương vị`,"",dc[i],{done:String(i)})});
+  // insights
+  const top=cnt[0], low=cnt[cnt.length-1];
+  const multi=R.filter(r=>r.done>=4).length, one=R.filter(r=>r.done<=1);
+  const tcReady=R.filter(r=>r.trained.includes("TC")&&r.pos!=="Trưởng ca").length;
+  const thin=cnt.filter(x=>x.n>0&&x.n<=7);
+  $("trainIns").innerHTML=[
+    ["",`Cương vị được đào tạo nhiều nhất`,`${esc(top.l)} với ${top.n} người; ít nhất là ${esc(low.l)} (${low.n} người).`],
+    ["",`Nhân sự đa năng`,`${multi} người (${n?Math.round(multi/n*100):0}%) đã hoàn thành từ 4 cương vị trở lên, thuận lợi cho luân chuyển ca.`],
+    [one.length?"w":"",`Cần bổ sung đào tạo`,`${one.length} người mới hoàn thành tối đa 1 cương vị${one.length?` (thâm niên trung bình ${fmt1(one.reduce((a,r)=>a+r.sen,0)/one.length)} năm)`:""}.`],
+    [thin.length?"w":"",`Cương vị có ít người dự phòng`,thin.length?thin.map(x=>`${esc(x.l)} (${x.n})`).join(", ")+` – nên ưu tiên đào tạo kế cận.`:"Tất cả cương vị đều có trên 7 người đã đào tạo."],
+    ["",`Nguồn kế cận Trưởng ca`,`${tcReady} người đã được đào tạo Trưởng ca nhưng đang giữ cương vị khác.`]
+  ].map(([w,t,s])=>`<div class="ins"><span class="ck ${w}">${w?"!":"✓"}</span><div><div class="t">${t}</div><div class="s">${s}</div></div></div>`).join("");
+}
+function openTrain(k){const L=rowsD().filter(r=>r.trained.includes(k)).sort((a,b)=>b.done-a.done);showList(`Nhân sự được đào tạo: ${TRAIN_LABEL[k]}`,"",L,{train:k})}
+$("posCards").onclick=e=>{const c=e.target.closest(".pc");if(c)openTrain(c.dataset.k)};
+
+// ---------- TAB salary ----------
+function renderSalary(){
+  const all=rowsD();
+  const grades=[...new Set(all.map(r=>r.grade))].sort();
+  if(S.grade!=="ALL"&&!grades.includes(S.grade))S.grade="ALL";
+  $("gradeChips").innerHTML=`<button class="chip ${S.grade==="ALL"?"on":""}" data-g="ALL">Tất cả ngạch<b>${all.length}</b></button>`+grades.map(g=>`<button class="chip ${S.grade===g?"on":""}" data-g="${esc(g)}">Ngạch ${esc(g)}<b>${all.filter(r=>r.grade===g).length}</b></button>`).join("");
+  const R=S.grade==="ALL"?all:all.filter(r=>r.grade===S.grade), n=R.length;
+  // step distribution
+  const sm={};R.forEach(r=>{(sm[r.step]=sm[r.step]||[]).push(r)});
+  const steps=Object.keys(sm).sort((a,b)=>{const[x1,y1]=a.split("/").map(Number),[x2,y2]=b.split("/").map(Number);return y1-y2||x1-x2});
+  const topS=steps.reduce((b,s)=>!b||sm[s].length>sm[b].length?s:b,null);
+  $("sTopStep").textContent=topS||"–";$("sTopStepH").textContent=topS?`${sm[topS].length} người`:"";
+  const raised=R.filter(r=>r.raise===S.year);$("sRaiseL").textContent=`Nâng lương năm ${S.year}`;$("sRaise").textContent=raised.length+" người";
+  $("sRaiseCard").onclick=()=>showList(`Nhân sự nâng lương năm ${S.year}`,S.grade==="ALL"?"":`Ngạch ${S.grade}`,raised,{raise:String(S.year)});
+  $("sCoef").textContent=n?fmt2(R.reduce((a,r)=>a+r.coef,0)/n):"–";
+  const cs=R.map(r=>r.coef).sort((a,b)=>a-b);$("sCoefH").textContent=n?`Thấp nhất ${fmt2(cs[0])} · cao nhất ${fmt2(cs[n-1])}`:"";
+  const al=R.reduce((a,r)=>a+r.allowN,0);$("sAllow").textContent=money(al);$("sAllowH").textContent=`${R.filter(r=>r.allowN>0).length} người có phụ cấp`;
+  barChart("cStep",{labels:steps.map(s=>"Bậc "+s),data:steps.map(s=>sm[s].length),color:C.orange,onClick:i=>showList(`Nhân sự bậc lương ${steps[i]}`,S.grade==="ALL"?"":`Ngạch ${S.grade}`,sm[steps[i]],{step:steps[i]})});
+  const cg=COEF_G.map(g=>R.filter(r=>g.t(r.coef)));
+  barChart("cCoef",{labels:COEF_G.map(g=>g.l),data:cg.map(x=>x.length),color:C.orange,onClick:i=>showList(`Nhân sự hệ số lương ${COEF_G[i].l}`,"",cg[i].sort((a,b)=>b.coef-a.coef))});
+  // insights
+  const stale=R.filter(r=>S.year-r.raise>=3).sort((a,b)=>a.raise-b.raise);
+  const maxC=R.reduce((b,r)=>!b||r.coef>b.coef?r:b,null);
+  const nearTop=R.filter(r=>r.stepMax&&r.stepN>=r.stepMax-1);
+  window._stale=stale;
+  $("salIns").innerHTML=[
+    ["",`Hệ số lương cao nhất`,maxC?`${esc(maxC.name)} (${esc(maxC.pos)}) – hệ số ${fmt2(maxC.coef)}, bậc ${esc(maxC.step)}.`:"–"],
+    [stale.length?"w":"",`Lâu chưa nâng lương (từ 3 năm)`,stale.length?`${stale.length} người, lâu nhất từ năm ${stale[0].raise}. <a href="#" data-stale style="color:var(--accent)">Xem danh sách</a>`:"Không có."],
+    ["",`Gần kịch bậc`,`${nearTop.length} người đang ở bậc cuối hoặc sát bậc cuối của ngạch.`],
+    ["",`Phụ cấp`,`Tổng ${money(al)} đồng/tháng; ${R.filter(r=>String(r.allow).includes("+")).length} người hưởng từ 2 khoản phụ cấp.`]
+  ].map(([w,t,s])=>`<div class="ins"><span class="ck ${w}">${w?"!":"✓"}</span><div><div class="t">${t}</div><div class="s">${s}</div></div></div>`).join("");
+}
+$("gradeChips").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;S.grade=c.dataset.g;renderSalary()};
+$("salIns").onclick=e=>{if(e.target.closest("[data-stale]")){e.preventDefault();showList("Nhân sự lâu chưa nâng lương","từ 3 năm trở lên",window._stale)}};
+
+// ---------- TAB list ----------
+const FDEF={
+  age:{el:"fAge",all:"Tất cả nhóm tuổi",opts:()=>AGE_G.map((g,i)=>[String(i),g.l]),t:(r,v)=>AGE_G[+v].t(r.age)},
+  pos:{el:"fPos",all:"Tất cả cương vị hiện tại",opts:()=>[...new Set(S.rows.map(r=>r.pos))].sort().map(p=>[p,p]),t:(r,v)=>r.pos===v},
+  done:{el:"fDone",all:"Số cương vị đã hoàn thành",opts:()=>[...Array(12).keys()].map(i=>[String(i),`Đã hoàn thành ${i} cương vị`]),t:(r,v)=>r.done===+v},
+  train:{el:"fTrain",all:"Đào tạo: tất cả",opts:()=>[["NONE","Chưa đào tạo cương vị nào"],...TRAIN.map(([k,l])=>[k,"Đã đào tạo: "+l])],t:(r,v)=>v==="NONE"?r.done===0:r.trained.includes(v)},
+  ret:{el:"fRet",all:"Tất cả lộ trình hưu",opts:()=>RET_G.map(y=>[String(y),`Nghỉ hưu trong ${y} năm`]),t:(r,v)=>r.left<=+v},
+  sen:{el:"fSen",all:"Tất cả thâm niên",opts:()=>SEN_G.map((g,i)=>[String(i),"Thâm niên "+g.l.toLowerCase()]),t:(r,v)=>SEN_G[+v].t(r.sen)},
+  step:{el:"fStep",all:"Tất cả bậc lương",opts:()=>[...new Set(S.rows.map(r=>r.step))].sort((a,b)=>{const[x1,y1]=a.split("/").map(Number),[x2,y2]=b.split("/").map(Number);return y1-y2||x1-x2}).map(s=>[s,"Bậc "+s]),t:(r,v)=>r.step===v},
+  grade:{el:"fGrade",all:"Tất cả ngạch lương",opts:()=>[...new Set(S.rows.map(r=>r.grade))].sort().map(g=>[g,"Ngạch "+g]),t:(r,v)=>r.grade===v},
+  raise:{el:"fRaise",all:"Tất cả năm tăng lương",opts:()=>[["STALE","Chưa tăng ≥ 3 năm"],...[...new Set(S.rows.map(r=>r.raise))].sort((a,b)=>b-a).map(y=>[String(y),"Năm tăng "+y])],t:(r,v)=>v==="STALE"?S.year-r.raise>=3:r.raise===+v},
+  allow:{el:"fAllow",all:"Tất cả phụ cấp",opts:()=>[["0","Không có phụ cấp"],["1","Có phụ cấp"],["2","Từ 2 khoản trở lên"]],t:(r,v)=>v==="0"?r.allowN===0:v==="1"?r.allowN>0:String(r.allow).includes("+")},
+  gender:{el:"fGender",all:"Tất cả giới tính",opts:()=>[["Nam","Nam"],["Nữ","Nữ"]],t:(r,v)=>r.gender===v}
+};
+function buildFilterUI(){for(const[k,f]of Object.entries(FDEF)){const el=$(f.el);el.innerHTML=`<option value="">${f.all}</option>`+f.opts().map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("");el.value=S.filters[k]||""}}
+function syncFilterUI(){for(const[k,f]of Object.entries(FDEF)){const el=$(f.el);if([...el.options].some(o=>o.value===(S.filters[k]||"")))el.value=S.filters[k]||"";}$("fQ").value=S.filters.q||""}
+function clearFilters(render=true){S.filters={};S.page=1;syncFilterUI();if(render)renderList()}
+for(const[k,f]of Object.entries(FDEF)){$(f.el).onchange=e=>{S.filters[k]=e.target.value;S.page=1;renderList()}}
+$("fQ").oninput=e=>{S.filters.q=e.target.value;S.page=1;renderList()};
+$("btnClear").onclick=()=>clearFilters();
+const norm=s=>String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D").toLowerCase();
+function filtered(){
+  let R=rowsD();
+  for(const[k,f]of Object.entries(FDEF)){const v=S.filters[k];if(v)R=R.filter(r=>f.t(r,v))}
+  if(S.filters.q){const q=norm(S.filters.q.trim());R=R.filter(r=>norm(r.id+" "+r.name+" "+r.pos+" "+r.grade).includes(q))}
+  const {k,d}=S.sort;R.sort((a,b)=>{const x=a[k],y=b[k];return (typeof x==="number"?x-y:String(x).localeCompare(String(y),"vi"))*d});
+  return R;
+}
+const COLS=[["id","Mã NV"],["name","Họ và tên"],["age","Tuổi",1],["sen","Thâm niên",1],["left","Còn đến hưu",1],["pos","Cương vị"],["grade","Ngạch · Bậc"],["coef","Hệ số",1],["raise","Năm tăng",1],["allowN","Phụ cấp",1],["done","Đã HT",1]];
+const pgSize=()=>+$("pgSize").value;
+function renderList(){
+  $("thead").innerHTML=COLS.map(([k,l,num])=>`<th class="${num?"num":""}" data-k="${k}">${l}${S.sort.k===k?(S.sort.d>0?" ▲":" ▼"):""}</th>`).join("")+`<th class="ns adm"></th>`;
+  const R=filtered();$("resN").textContent=R.length;
+  const ps=pgSize(),pages=Math.max(1,Math.ceil(R.length/ps));if(S.page>pages)S.page=pages;
+  const P=R.slice((S.page-1)*ps,S.page*ps);
+  $("tbody").innerHTML=P.length?P.map(r=>`<tr class="row ${S.sel===r.id?"sel":""}" data-id="${esc(r.id)}"><td style="font-variant-numeric:tabular-nums">${esc(r.id)}</td><td style="font-weight:600;min-width:140px">${esc(r.name)}</td><td class="num">${r.age}</td><td class="num">${r.sen} năm</td><td class="num"><span class="tag ${r.left<=0?"b":r.left<=5?"w":""}">${r.left<=0?"Đã đến":r.left+" năm"}</span></td><td><span class="tag a">${esc(r.pos)}</span></td><td style="white-space:nowrap">${esc(r.grade)} · ${esc(r.step)}</td><td class="num">${fmt2(r.coef)}</td><td class="num">${r.raise}</td><td class="num">${r.allowN?money(r.allowN):"–"}</td><td class="num"><span class="badge-n">${r.done}</span></td><td class="adm" style="white-space:nowrap"><button class="iconbtn" data-edit="${esc(r.id)}" title="Sửa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="iconbtn del" data-del="${esc(r.id)}" title="Xóa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></td></tr>`).join(""):`<tr><td colspan="12" class="empty">Không có nhân sự phù hợp bộ lọc.</td></tr>`;
+  $("pgInfo").textContent=R.length?`Hiển thị ${(S.page-1)*ps+1}–${Math.min(S.page*ps,R.length)} trong tổng số ${R.length} nhân sự`:"";
+  $("pg").innerHTML=pages>1?[...Array(pages).keys()].map(i=>`<button class="${i+1===S.page?"on":""}" data-p="${i+1}">${i+1}</button>`).join(""):"";
+  renderDetail();
+}
+$("thead").onclick=e=>{const th=e.target.closest("th[data-k]");if(!th)return;const k=th.dataset.k;S.sort=S.sort.k===k?{k,d:-S.sort.d}:{k,d:1};renderList()};
+$("pg").onclick=e=>{const b=e.target.closest("button");if(b){S.page=+b.dataset.p;renderList()}};
+$("pgSize").onchange=()=>{S.page=1;renderList()};
+$("tbody").onclick=e=>{
+  const ed=e.target.closest("[data-edit]");if(ed){openEdit(ed.dataset.edit);return}
+  const dl=e.target.closest("[data-del]");if(dl){delPerson(dl.dataset.del);return}
+  const tr=e.target.closest("tr.row");if(tr){S.sel=tr.dataset.id;renderList()}
+};
+function renderDetail(){
+  const r=rowsD().find(x=>x.id===S.sel);const el=$("detail");
+  if(!r){el.innerHTML=`<div class="empty"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#b5b7c0" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div style="font-weight:600;color:var(--ink2);margin-top:8px">Chi tiết nhân sự</div>Chọn một nhân viên trong bảng để xem hồ sơ chi tiết.</div>`;return}
+  const missing=TRAIN.filter(([k])=>!r.trained.includes(k));
+  el.innerHTML=`<div style="display:flex;gap:10px;align-items:center"><div class="logo" style="width:44px;height:44px;font-weight:700">${esc(r.name.split(" ").pop()[0]||"")}</div><div><div style="font-weight:700;font-size:15px">${esc(r.name)}</div><div style="font-size:12px;color:var(--ink3)">Mã NV ${esc(r.id)} · ${esc(r.gender)}</div></div></div>
+  <div style="margin-top:10px"><span class="tag a">${esc(r.pos)}</span> <span class="tag ${r.left<=0?"b":r.left<=5?"w":"g"}">${r.left<=0?"Đã đến tuổi hưu":"Nghỉ hưu năm "+r.retireYear}</span></div>
+  <div class="dl"><div><span>Năm sinh / Tuổi</span><b>${r.birth} · ${r.age} tuổi</b></div><div><span>Tuổi nghỉ hưu</span><b>${r.ra} (còn ${Math.max(0,r.left)} năm)</b></div>
+  <div><span>Năm vào nhà máy</span><b>${r.join}</b></div><div><span>Thâm niên</span><b>${r.sen} năm</b></div>
+  <div><span>Ngạch / Bậc</span><b>${esc(r.grade)} · ${esc(r.step)}</b></div><div><span>Hệ số lương</span><b>${fmt2(r.coef)}</b></div>
+  <div><span>Năm tăng lương gần nhất</span><b>${r.raise}</b></div><div><span>Phụ cấp / tháng</span><b>${r.allowN?fmt(r.allowN)+" đ":"Không"}</b></div></div>
+  <div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Đã đào tạo (${r.done})</div>
+  <div class="tags">${r.trained.length?r.trained.map(k=>`<span class="tag g">${esc(TRAIN_LABEL[k]||k)}</span>`).join(""):`<span style="color:var(--ink3);font-size:12.5px">Chưa có</span>`}</div>
+  <div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;margin:12px 0 6px">Chưa đào tạo</div>
+  <div class="tags">${missing.map(([k,l])=>`<span class="tag">${esc(l)}</span>`).join("")||`<span style="color:var(--ink3);font-size:12.5px">Đã đủ tất cả cương vị</span>`}</div>
+  <div class="adm" style="display:flex;gap:8px;margin-top:16px"><button class="btn primary" data-edit="${esc(r.id)}">Chỉnh sửa</button><button class="btn danger" data-del="${esc(r.id)}">Xóa</button></div>`;
+}
+$("detail").onclick=e=>{const ed=e.target.closest("[data-edit]");if(ed)openEdit(ed.dataset.edit);const dl=e.target.closest("[data-del]");if(dl)delPerson(dl.dataset.del)};
+
+// ---------- edit ----------
+let editingId=null;
+$("cbgrid").innerHTML=TRAIN.map(([k,l])=>`<label class="cb"><input type="checkbox" name="t_${k}" value="${k}">${esc(l)}</label>`).join("");
+$("cbgrid").onchange=()=>{let n=0;$("cbgrid").querySelectorAll("label").forEach(lb=>{const c=lb.querySelector("input").checked;lb.classList.toggle("on",c);n+=c});$("doneN").textContent=n};
+function openEdit(id){
+  if(!S.admin)return;
+  editingId=id;const r=S.rows.find(x=>x.id===id);const f=$("fm");f.reset();$("meErr").textContent="";
+  $("posOpts").innerHTML=[...new Set(S.rows.map(r=>r.pos))].sort().map(p=>`<option value="${esc(p)}">`).join("");
+  $("gradeOpts").innerHTML=[...new Set(S.rows.map(r=>r.grade))].sort().map(p=>`<option value="${esc(p)}">`).join("");
+  if(r){$("meTitle").textContent="Cập nhật nhân sự: "+r.name;for(const k of["id","name","birth","gender","retireAge","join","pos","grade","step","coef","raise","allow"])f.elements[k].value=r[k]??"";TRAIN.forEach(([k])=>f.elements["t_"+k].checked=r.trained.includes(k))}
+  else{$("meTitle").textContent="Thêm nhân sự mới";f.elements.join.value=S.year;f.elements.raise.value=S.year;f.elements.retireAge.value=62;f.elements.allow.value="0"}
+  f.elements.gender.onchange=()=>{if(!r)f.elements.retireAge.value=f.elements.gender.value==="Nữ"?60:62};
+  $("cbgrid").dispatchEvent(new Event("change"));openOv("ovEdit");setTimeout(()=>f.elements[r?"name":"id"].focus(),50);
+}
+$("btnAdd").onclick=()=>openEdit(null);
+$("meSave").onclick=async()=>{
+  const f=$("fm");if(!f.reportValidity())return;const g=k=>f.elements[k].value.trim();
+  const rec={id:g("id"),name:g("name"),birth:+g("birth"),gender:g("gender"),retireAge:+g("retireAge")||(g("gender")==="Nữ"?60:62),join:+g("join"),pos:g("pos")||"—",grade:g("grade"),step:g("step"),coef:+g("coef")||0,raise:+g("raise")||+g("join"),allow:g("allow").replace(/\s/g,"")||"0",trained:TRAIN.map(([k])=>k).filter(k=>f.elements["t_"+k].checked)};
+  if(S.rows.some(r=>r.id===rec.id&&r.id!==editingId)){$("meErr").textContent="Mã NV đã tồn tại.";return}
+  if(rec.join<rec.birth+15){$("meErr").textContent="Năm vào nhà máy không hợp lệ so với năm sinh.";return}
+  const next=editingId?S.rows.map(r=>r.id===editingId?rec:r):[...S.rows,rec];
+  const ok=await save(next,(editingId?"Sửa ":"Thêm ")+rec.name);
+  if(ok){$("ovEdit").classList.remove("show");S.sel=rec.id;toast(editingId?"Đã lưu thay đổi":"Đã thêm nhân sự")}
+};
+async function delPerson(id){
+  const r=S.rows.find(x=>x.id===id);if(!r)return;
+  if(!await confirmBox("Xóa nhân sự?",`Xóa <b>${esc(r.name)}</b> (Mã NV ${esc(r.id)}) khỏi danh sách xưởng. Có thể khôi phục bằng file backup hoặc nút "Khôi phục gốc".`,"Xóa",true))return;
+  if(await save(S.rows.filter(x=>x.id!==id),"Xóa "+r.name)){if(S.sel===id)S.sel=null;toast("Đã xóa nhân sự")}
+}
+
+// ---------- persistence (Cloudflare Worker /api/nhansu) ----------
+const API="/api/nhansu";
+let PW=null;try{PW=sessionStorage.getItem("hrpw")}catch(e){}
+async function apiCall(path,opt={}){
+  const r=await fetch(API+path,{cache:"no-store",...opt,headers:{"content-type":"application/json",...(PW?{authorization:"Bearer "+PW}:{})}});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok){const e=new Error(j.error||("Lỗi "+r.status));e.status=r.status;e.conflict=!!j.conflict;throw e}
+  return j;
+}
+const fmtTime=t=>new Date(t).toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+function applyData(d){
+  S.rows=(d.rows||[]).map(r=>({...r,trained:[...(r.trained||[])]}));S.meta=d;S.canEdit=!!d.canEdit;S.loaded=true;
+  setSync(d.updatedAt?"Cập nhật: "+fmtTime(d.updatedAt):"");
+  banner(S.rows.length?"":"Chưa có dữ liệu nhân sự.");
+  if(!S.canEdit&&S.admin){S.admin=false}
+  applyRole();renderAll();
+}
+async function load(){
+  try{applyData(await apiCall(""))}
+  catch(e){try{const r=await fetch("data/nhansu.json?v="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;applyData({...(await r.json()),canEdit:false})}
+    catch(e2){banner("Không tải được dữ liệu nhân sự. Vui lòng tải lại trang.");setSync("")}}
+}
+let saving=false;
+async function save(rows,note){
+  if(!S.admin){toast("Cần đăng nhập quản trị");return false}
+  if(saving){toast("Đang lưu, vui lòng đợi…");return false}
+  saving=true;setSync("Đang lưu…");
+  try{const j=await apiCall("",{method:"PUT",body:JSON.stringify({rows,note:note||"",base:S.meta.updatedAt||null})});
+    S.meta={...S.meta,updatedAt:j.updatedAt,source:"web"};S.rows=rows.map(r=>({...r,trained:[...r.trained]}));
+    setSync("Đã lưu "+fmtTime(j.updatedAt));renderAll();return true}
+  catch(e){setSync("");
+    if(e.status===401){logout();toast("Phiên quản trị hết hiệu lực – vui lòng đăng nhập lại")}
+    else if(e.conflict){toast(e.message);load()}
+    else toast("Lưu thất bại: "+e.message);
+    return false}
+  finally{saving=false}
+}
+function setSync(t){$("sync").textContent=t}
+function banner(t){const b=$("banner");b.innerHTML=t||"";b.classList.toggle("show",!!t)}
+function applyRole(){document.body.classList.toggle("is-admin",S.admin);const b=$("btnLogin");b.textContent=S.admin?"✓ Quản trị · Đăng xuất":"🔒 Đăng nhập quản trị";b.classList.toggle("primary",S.admin);if(S.tab==="list")renderList();else if(S.loaded)renderDetail()}
+function logout(){PW=null;S.admin=false;try{sessionStorage.removeItem("hrpw")}catch(e){}applyRole()}
+$("btnLogin").onclick=()=>{if(S.admin){logout();toast("Đã đăng xuất");return}
+  if(S.loaded&&!S.canEdit){toast("Chưa bật lưu chung trên Cloudflare (xem HUONG-DAN-TRIEN-KHAI.md)");return}
+  $("pwIn").value="";$("pwErr").textContent="";openOv("ovLogin");setTimeout(()=>$("pwIn").focus(),50)};
+async function doLogin(){const pw=$("pwIn").value;if(!pw)return;$("pwOk").disabled=true;$("pwErr").textContent="";
+  try{PW=pw;await apiCall("/login",{method:"POST",body:"{}"});S.admin=true;try{sessionStorage.setItem("hrpw",pw)}catch(e){}$("ovLogin").classList.remove("show");applyRole();toast("Đã đăng nhập quản trị")}
+  catch(e){PW=null;$("pwErr").textContent=e.message}
+  finally{$("pwOk").disabled=false}}
+$("pwOk").onclick=doLogin;$("loginForm").onsubmit=e=>{e.preventDefault();doLogin()};
+
+// ---------- import / export ----------
+function parseCSV(text){
+  const out=[];let row=[],cur="",q=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}
+    else if(ch==='"')q=true;else if(ch===","||ch===";"&&false){row.push(cur);cur=""}
+    else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(cur);out.push(row);row=[];cur=""}
+    else cur+=ch}
+  if(cur||row.length){row.push(cur);out.push(row)}
+  return out.filter(r=>r.some(c=>c.trim()));
+}
+const TRAIN_HDR={"trưởng ca":"TC","dcs":"DCS","nồi hơi":"NH","gt&hrsg":"GT","river":"RIVER","demi":"DEMI","nito-mn":"NITO","nitơ-mn":"NITO","raw":"RAW","nh3-flare":"NH3","xlnt":"XLNT","nhr":"NHR"};
+const POS_CANON={"nồi hơi":"Nồi hơi","raw":"RAW","demi":"Demi","nitơ- mn":"Nitơ-MN","nitơ-mn":"Nitơ-MN","river":"RIVER","wwt":"XLNT","xlnt":"XLNT","nh3":"NH3","nhr":"NHR","dcs":"DCS","gt":"GT","trưởng ca":"Trưởng ca"};
+function rowsFromCSV(text){
+  let t=text.replace(/^﻿/,"");
+  if(!t.split("\n")[0].includes(",")&&t.split("\n")[0].includes(";"))t=t.replace(/;/g,",");
+  const A=parseCSV(t);if(A.length<2)throw new Error("File không có dữ liệu.");
+  const H=A[0].map(h=>h.trim().toLowerCase());
+  const ix=name=>H.findIndex(h=>h===name);
+  const need={id:"mã nv",name:"họ và tên",birth:"năm sinh",gender:"giới tính",retireAge:"tuổi nghỉ hưu",join:"năm vào nhà máy",pos:"cương vị đang đảm nhận",grade:"ngạch lương",step:"bậc lương",coef:"hệ số lương",raise:"năm tăng lương gần nhất",allow:"phụ cấp"};
+  const I={};for(const[k,h]of Object.entries(need)){I[k]=ix(h);if(I[k]<0&&["id","name","birth","join"].includes(k))throw new Error(`Thiếu cột "${h}".`)}
+  const tcols=H.map((h,i)=>[TRAIN_HDR[h.replace(/\s/g,"")]||TRAIN_HDR[h],i]).filter(([k])=>k);
+  const get=(r,k)=>I[k]>=0?(r[I[k]]||"").trim():"";
+  const rows=[],errs=[];
+  A.slice(1).forEach((r,n)=>{const id=get(r,"id");if(!id)return;
+    const birth=parseInt(get(r,"birth")),join=parseInt(get(r,"join"));
+    if(!birth||!join){errs.push(`Dòng ${n+2} (${id}): thiếu năm sinh/năm vào`);return}
+    const g=get(r,"gender")||"Nam";const pos=get(r,"pos");
+    rows.push({id,name:get(r,"name"),birth,gender:g,retireAge:parseInt(get(r,"retireAge"))||(g==="Nữ"?60:62),join,pos:POS_CANON[pos.toLowerCase()]||pos||"—",grade:get(r,"grade"),step:get(r,"step").replace(/^'/,""),coef:parseFloat(get(r,"coef").replace(",","."))||0,raise:parseInt(get(r,"raise"))||join,allow:(get(r,"allow")||"0").replace(/\s/g,""),trained:tcols.filter(([k,i])=>/^x$/i.test((r[i]||"").trim())).map(([k])=>k)});
+  });
+  return {rows,errs};
+}
+function validRows(rows){if(!Array.isArray(rows))throw new Error("JSON không đúng định dạng.");return rows.filter(r=>r&&r.id&&r.name&&r.birth&&r.join).map(r=>({id:String(r.id),name:String(r.name),birth:+r.birth,gender:r.gender==="Nữ"?"Nữ":"Nam",retireAge:+r.retireAge||62,join:+r.join,pos:String(r.pos||"—"),grade:String(r.grade||""),step:String(r.step||""),coef:+r.coef||0,raise:+r.raise||+r.join,allow:String(r.allow||"0"),trained:(r.trained||[]).filter(k=>TRAIN_LABEL[k])}))}
+let pending=null;
+$("btnImport").onclick=()=>{pending=null;$("impPreview").innerHTML="";$("impErr").textContent="";$("impOk").disabled=true;$("fileIn").value="";openOv("ovImport")};
+$("drop").onclick=()=>$("fileIn").click();
+$("drop").ondragover=e=>{e.preventDefault()};$("drop").ondrop=e=>{e.preventDefault();if(e.dataTransfer.files[0])readFile(e.dataTransfer.files[0])};
+$("fileIn").onchange=e=>{if(e.target.files[0])readFile(e.target.files[0])};
+async function readFile(file){
+  $("impErr").textContent="";$("impOk").disabled=true;
+  try{
+    const buf=await file.arrayBuffer();let text=new TextDecoder("utf-8").decode(buf);
+    if(text.includes("\uFFFD"))text=new TextDecoder("windows-1258").decode(buf);
+    let res;
+    if(/\.json$/i.test(file.name)||text.trim().startsWith("{")||text.trim().startsWith("[")){const j=JSON.parse(text);res={rows:validRows(Array.isArray(j)?j:j.rows),errs:[]}}
+    else res=rowsFromCSV(text);
+    const ids=new Set(),dup=[];res.rows.forEach(r=>{if(ids.has(r.id))dup.push(r.id);ids.add(r.id)});
+    if(!res.rows.length)throw new Error("Không đọc được dòng nhân sự nào.");
+    pending=res.rows;
+    const oldIds=new Set(S.rows.map(r=>r.id));const add=res.rows.filter(r=>!oldIds.has(r.id)).length,rem=S.rows.filter(r=>!ids.has(r.id)).length;
+    $("impPreview").innerHTML=`<div class="note"><b>${esc(file.name)}</b>: đọc được <b>${res.rows.length}</b> nhân sự, ${res.rows.reduce((a,r)=>a+r.trained.length,0)} lượt đào tạo.<br>So với hiện tại: +${add} người mới, −${rem} người không còn trong file.${dup.length?`<br><span style="color:var(--bad)">Mã NV bị trùng: ${esc(dup.join(", "))}</span>`:""}${res.errs.length?`<br><span style="color:var(--warn)">Bỏ qua ${res.errs.length} dòng lỗi: ${esc(res.errs.slice(0,3).join("; "))}</span>`:""}</div>`;
+    $("impOk").disabled=!!dup.length;
+  }catch(e){$("impErr").textContent=e.message||String(e)}
+}
+$("impOk").onclick=async()=>{if(!pending)return;$("impOk").disabled=true;
+  if(await save(pending,"Nhập file")){$("ovImport").classList.remove("show");toast(`Đã cập nhật ${pending.length} nhân sự`)}else $("impOk").disabled=false};
+$("btnRestore").onclick=async()=>{
+  if(!await confirmBox("Khôi phục theo file gốc?",`Bỏ toàn bộ chỉnh sửa đã làm trên web, quay về dữ liệu trong file <b>data/nhansu.json</b> của web. Nên <b>Xuất JSON (Backup)</b> trước.`,"Khôi phục",true))return;
+  try{await apiCall("/restore",{method:"POST",body:"{}"});toast("Đã khôi phục theo file gốc");load()}catch(e){if(e.status===401)logout();toast("Không khôi phục được: "+e.message)}
+};
+function toCSV(){
+  const H=["Mã NV","Họ và tên","Năm sinh","Tuổi","Giới tính","Tuổi nghỉ hưu","Năm còn lại đến hưu","Năm vào nhà máy","Số năm làm việc","Cương vị đang đảm nhận","Ngạch lương","Bậc lương","Hệ số lương","Năm tăng lương gần nhất","Phụ cấp","Cương vị đã hoàn thành",...TRAIN.map(t=>t[1]==="Nitơ-MN"?"Nito-MN":t[1])];
+  const q=v=>{v=String(v);return /[",\n]/.test(v)||/[^\d.]/.test(v)?`"${v.replace(/"/g,'""')}"`:v};
+  const lines=[H.join(",")];
+  [...S.rows].map(D).sort((a,b)=>a.id.localeCompare(b.id)).forEach(r=>lines.push([r.id,q(r.name),r.birth,r.age,q(r.gender),r.ra,r.left,r.join,r.sen,q(r.pos),q(r.grade),q("'"+r.step),r.coef,r.raise,q(r.allow),r.done,...TRAIN.map(([k])=>r.trained.includes(k)?"x":"0")].join(",")));
+  return "﻿"+lines.join("\r\n");
+}
+function download(filename,data,mime){
+  try{const u=URL.createObjectURL(new Blob([data],{type:mime}));const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+  catch(e){toast("Không tải được file: "+e.message)}
+}
+const stamp=()=>`${S.year}_${new Date().toISOString().slice(0,10)}`;
+$("btnCsv").onclick=()=>download(`Bao_cao_nhan_su_${stamp()}.csv`,toCSV(),"text/csv");
+$("btnJson").onclick=()=>download(`Backup_nhan_su_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({exportedAt:new Date().toISOString(),rows:S.rows},null,1),"application/json");
+
+// ---------- tabs & year ----------
+function setTab(t){S.tab=t;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));["overview","training","salary","list"].forEach(x=>$("tab-"+x).classList.toggle("hidden",x!==t));renderTab();try{history.replaceState(null,"","#"+t)}catch(e){}}
+$("tabs").onclick=e=>{const b=e.target.closest(".tab");if(b)setTab(b.dataset.tab)};
+function renderTab(){if(!S.loaded)return;({overview:renderOverview,training:renderTraining,salary:renderSalary,list:renderList})[S.tab]()}
+function renderAll(){renderKpis();buildFilterUI();renderTab()}
+(function(){const sel=$("yearSel");for(let y=NOW-2;y<=NOW+10;y++)sel.innerHTML+=`<option ${y===NOW?"selected":""}>${y}</option>`;sel.onchange=()=>{S.year=+sel.value;renderAll()}})();
+window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(["overview","training","salary","list"].includes(h)&&h!==S.tab)setTab(h)});
+
+// ---------- boot ----------
+(function boot(){
+  const h=location.hash.slice(1);if(["overview","training","salary","list"].includes(h))setTab(h);
+  setSync("Đang tải dữ liệu…");
+  if(PW){S.admin=true}
+  applyRole();
+  load().then(()=>{if(PW&&S.canEdit)apiCall("/login",{method:"POST",body:"{}"}).catch(()=>logout())});
+  // tự cập nhật khi quay lại trang (nếu không đang mở hộp thoại)
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!document.querySelector(".ov.show")&&!saving)load()});
+})();
+</script>
+</body>
+</html>

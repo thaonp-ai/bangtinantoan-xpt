@@ -18,3 +18,19 @@ Trên web: chọn tuần → **Xuất PDF** → máy in “Lưu dưới dạng P
 
 ## Xem trước dữ liệu trước khi đưa lên web
 Mở file `Bang tin an toan.html` trên máy (Chrome/Edge) → **Mở file Excel** → bật **Tự động cập nhật**.
+
+## Tab Nhân sự (thêm 17/11/2026)
+Web có 2 tab: **Bảng tin an toàn** và **Nhân sự** (link riêng: thêm `#nhan-su` vào cuối địa chỉ). Tab Nhân sự ai có link cũng xem được; chỉ quản trị viên (có mật khẩu) được thêm/sửa/xóa/nhập dữ liệu.
+
+### Bật lưu chung + mật khẩu quản trị (làm 1 lần)
+Chưa làm bước này thì tab Nhân sự vẫn xem được (đọc file `web/data/nhansu.json`) nhưng không sửa trên web được.
+1. Cloudflare → *Storage & Databases → Workers KV → Create instance*, đặt tên `nhansu-xpt` → chép **Namespace ID**.
+2. Gửi ID đó cho Claude (Claude thêm vào `wrangler.jsonc` mục `kv_namespaces`, binding `NHANSU`).
+   Không thêm binding bằng tay trên dashboard: mỗi lần triển khai, cấu hình trong `wrangler.jsonc` sẽ ghi đè.
+3. Cloudflare → *Workers & Pages → bangtinantoan-xpt → Settings → Variables and Secrets → Add* → Type **Secret**, tên `ADMIN_PASSWORD`, giá trị = mật khẩu quản trị → *Deploy*.
+   Đổi mật khẩu: sửa lại secret này.
+
+### Cập nhật dữ liệu nhân sự
+- **Trên web:** bấm *Đăng nhập quản trị* → sửa từng người, hoặc *Nhập dữ liệu* (file CSV cùng mẫu "Báo cáo nhân sự" hoặc file JSON backup). Lưu ngay, mọi người thấy.
+- **Qua Claude:** gửi file CSV mới → Claude cập nhật `web/data/nhansu.json` và đẩy lên GitHub. File mới sẽ thay cho các chỉnh sửa cũ trên web, nên trước khi gửi hãy *Xuất CSV* từ web, sửa trên file đó rồi gửi.
+- *Khôi phục file gốc*: bỏ mọi chỉnh sửa trên web, quay về `web/data/nhansu.json`.

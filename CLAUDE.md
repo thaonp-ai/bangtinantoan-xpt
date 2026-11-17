@@ -21,3 +21,11 @@ Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Work
 - `web/index.html` là bản build của app (logo nhúng base64). Bản dùng offline trên máy người dùng: `Bang tin an toan.html` cùng thư mục OneDrive — giữ hai bản giống nhau khi sửa giao diện.
 - Trên web (http/https) app tải `data/bangtin.xlsx`, ẩn nút mở file; Xuất PDF = window.print (CSS @page A4).
 - Màu thương hiệu: teal #549B9C / #2F6F70, cam #DF6437, PVFCCo xanh lá #009D48, navy #354085.
+
+## Tab Nhân sự (17/11/2026)
+- `web/index.html` có thanh tab (chỉ hiện khi chạy trên web, `html.hosted`): Bảng tin | Nhân sự. Tab Nhân sự = iframe `web/nhansu.html` (một file, Chart.js từ cdnjs), hash `#nhan-su`; các hash `#tuan-…` giữ nguyên. Bản offline trên OneDrive không cần tab này (ẩn khi mở file://), nhưng nếu đồng bộ giao diện thì chép cả phần tab vào được.
+- `src/worker.js` (wrangler `main`, `run_worker_first: ["/api/*"]`): `/api/nhansu` GET công khai; PUT / POST `login` / POST `restore` cần `Authorization: Bearer <ADMIN_PASSWORD>` (secret). KV binding `NHANSU`, khóa `current` (bản sửa trên web) và `prev` (bản trước). Thiếu KV hoặc secret → chỉ đọc.
+- Dữ liệu trả về = bản có `updatedAt` mới hơn giữa KV `current` và file `web/data/nhansu.json` ({updatedAt, note, rows}). Khi cập nhật file theo yêu cầu người dùng: đặt `updatedAt` = thời điểm hiện tại (ISO) để file thắng; commit “Cập nhật dữ liệu nhân sự”.
+- Bản ghi: id, name, birth, gender, retireAge, join, pos, grade, step ("6/16"), coef, raise, allow ("2000000+3000000"), trained (mã: TC, DCS, NH, GT, RIVER, DEMI, NITO, RAW, NH3, XLNT, NHR). Số cương vị đã hoàn thành = số ô đào tạo. Tuổi/thâm niên tính theo năm chọn trên web.
+- CSV gốc (Bao_cao_nhan_su_YYYY.csv): cột "Cương vị đang đảm nhận" được chuẩn hóa (Nồi Hơi→Nồi hơi, Raw→RAW, DEMI→Demi, Nitơ- MN→Nitơ-MN, WWT→XLNT); cột đào tạo đánh dấu "x".
+- Người dùng chọn: tab Nhân sự công khai (không cần đăng nhập để xem).

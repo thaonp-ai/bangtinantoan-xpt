@@ -1,9 +1,14 @@
 {
-  // Web Bảng tin An toàn Vệ sinh Lao động - Xưởng Phụ Trợ (trang tĩnh trong thư mục web/, không cần đăng nhập)
+  // Web Bảng tin An toàn Vệ sinh Lao động - Xưởng Phụ Trợ (file tĩnh trong web/, không cần đăng nhập)
+  // src/worker.js chỉ xử lý /api/* (dữ liệu tab Nhân sự); còn lại là file tĩnh.
   "name": "bangtinantoan-xpt",
   "compatibility_date": "2026-10-01",
+  "main": "src/worker.js",
   "assets": {
     "directory": "./web",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
   }
+  // Lưu chung dữ liệu nhân sự: thêm KV binding "NHANSU" (id do Cloudflare cấp) và secret ADMIN_PASSWORD.
 }
