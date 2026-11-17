@@ -168,6 +168,8 @@ html.hosted .tabsw{display:inline-flex}
 #hrFrame{display:none;position:fixed;left:0;right:0;bottom:0;width:100%;border:0;background:#f4f5f8}
 body.tab-hr #hrFrame{display:block}
 body.tab-hr{overflow:hidden}
+/* tab Nhân sự không có thanh cuộn ngoài: bù bề rộng thanh cuộn để header không xê dịch */
+body.tab-hr .toolbar{padding-right:var(--sbw,0px)}
 body.tab-hr .wrap,body.tab-hr .toolbar .status,body.tab-hr #selWeek,body.tab-hr #btnPrint,body.tab-hr #btnOpen,body.tab-hr #btnReconnect,body.tab-hr #btnReload,body.tab-hr #autoWrap,body.tab-hr .drop-hint{display:none!important}
 /* ---------- print ---------- */
 @page{size:A4 portrait;margin:10mm 11mm 10mm 11mm}
@@ -677,6 +679,8 @@ addEventListener("drop",async e=>{e.preventDefault();if(VIEWER)return;dc=0;docum
 
 /* ===== Tab Bảng tin / Nhân sự (trang nhansu.html, dữ liệu qua /api/nhansu) ===== */
 let BT_TITLE=null;
+const SBW=(()=>{const d=document.createElement("div");d.style.cssText="position:absolute;top:-999px;width:100px;height:100px;overflow:scroll";document.body.appendChild(d);const w=d.offsetWidth-d.clientWidth;d.remove();return w;})();
+document.documentElement.style.setProperty("--sbw",SBW+"px");
 function sizeFrame(){const t=document.querySelector(".toolbar");$("hrFrame").style.top=t.offsetHeight+"px";$("hrFrame").style.height=(innerHeight-t.offsetHeight)+"px";}
 function setMainTab(hr){
   const was=document.body.classList.contains("tab-hr");
