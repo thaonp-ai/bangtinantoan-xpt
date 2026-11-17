@@ -3,8 +3,8 @@
 Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
 
 ## Cập nhật dữ liệu hàng tuần
-- Nguồn: file Excel trên máy người dùng `D:\OneDrive - PVFCCo\App Xuong Phu tro\Bang tin an toan hang tuan\Bang tin an toan hang tuan.xlsx` (người dùng chuyển vị trí 17/11/2026, trước đó ở `C:\Users\Admin\OneDrive - PVFCCo\...`; file gốc của người dùng, chọn 14/11/2026; KHÔNG dùng `Bang tin an toan - Du lieu.xlsx`). Tên file giả định giữ nguyên — lần đầu kết nối máy, liệt kê thư mục để xác nhận đường dẫn rồi sửa ghi chú này nếu khác.
-- Thư mục OneDrive chung: `D:\OneDrive - PVFCCo\App Xuong Phu tro\` (có cả thư mục `Xuong Phu tro`).
+- Nguồn: file Excel trên máy người dùng `C:\Users\Admin\OneDrive - PVFCCo\App Xuong Phu tro\Xuong Phu tro\Bang tin an toan hang tuan\Bang tin an toan hang tuan.xlsx` (người dùng chuyển vào thư mục `Xuong Phu tro`, xác nhận 17/11/2026; file gốc của người dùng, chọn 14/11/2026; KHÔNG dùng `Bang tin an toan - Du lieu.xlsx`). Bản offline `Bang tin an toan.html` nằm cùng thư mục.
+- Thư mục gốc trên máy người dùng: `C:\Users\Admin\OneDrive - PVFCCo\App Xuong Phu tro\Xuong Phu tro\` gồm `Bang tin an toan hang tuan\` và `Dashboard\` (cần device_request_folder_access thư mục này).
 - Stage file đó (device_stage_files), chép vào `web/data/bangtin.xlsx`, kiểm tra web đọc được (python3 -m http.server trong `web/` + google-chrome headless `--screenshot`), commit thẳng vào `main` với thông điệp “Cập nhật dữ liệu Tuần NN/YYYY”.
 - Không sửa nội dung Excel của người dùng khi chỉ cập nhật dữ liệu.
 
@@ -29,6 +29,6 @@ Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Cloudflare Work
 - `src/worker.js` (wrangler `main`, `run_worker_first: ["/api/*"]`): `/api/nhansu` GET công khai; PUT / POST `login` / POST `restore` cần `Authorization: Bearer <ADMIN_PASSWORD>` (secret). KV binding `NHANSU`, khóa `current` (bản sửa trên web) và `prev` (bản trước). Thiếu KV hoặc secret → chỉ đọc.
 - Dữ liệu trả về = bản có `updatedAt` mới hơn giữa KV `current` và file `web/data/nhansu.json` ({updatedAt, note, rows}). Khi cập nhật file theo yêu cầu người dùng: đặt `updatedAt` = thời điểm hiện tại (ISO) để file thắng; commit “Cập nhật dữ liệu nhân sự”.
 - Bản ghi: id, name, birth, gender, retireAge, join, pos, grade, step ("6/16"), coef, raise, allow ("2000000+3000000"), trained (mã: TC, DCS, NH, GT, RIVER, DEMI, NITO, RAW, NH3, XLNT, NHR). Số cương vị đã hoàn thành = số ô đào tạo. Tuổi/thâm niên tính theo năm chọn trên web.
-- Nguồn dữ liệu nhân sự trên máy người dùng: thư mục `D:\OneDrive - PVFCCo\App Xuong Phu tro\Dashboard\` (người dùng chọn 17/11/2026; tên file giả định `Bao_cao_nhan_su_YYYY.csv`, chưa xác nhận). Khi người dùng nhờ cập nhật: lấy file CSV/Excel mới nhất trong thư mục đó → chuyển thành `web/data/nhansu.json` (updatedAt = hiện tại) → kiểm tra web → commit “Cập nhật dữ liệu nhân sự”.
+- Nguồn dữ liệu nhân sự trên máy người dùng: `C:\Users\Admin\OneDrive - PVFCCo\App Xuong Phu tro\Xuong Phu tro\Dashboard\Bao_cao_nhan_su_2026.csv` (xác nhận 17/11/2026; năm sau có thể là `Bao_cao_nhan_su_YYYY.csv`). Khi người dùng nhờ cập nhật: lấy file CSV/Excel mới nhất trong thư mục đó → chuyển thành `web/data/nhansu.json` (updatedAt = hiện tại) → kiểm tra web → commit “Cập nhật dữ liệu nhân sự”.
 - CSV gốc (Bao_cao_nhan_su_YYYY.csv): cột "Cương vị đang đảm nhận" được chuẩn hóa (Nồi Hơi→Nồi hơi, Raw→RAW, DEMI→Demi, Nitơ- MN→Nitơ-MN, WWT→XLNT); cột đào tạo đánh dấu "x".
 - Người dùng chọn: tab Nhân sự công khai (không cần đăng nhập để xem).
