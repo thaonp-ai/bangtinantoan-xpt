@@ -26,7 +26,7 @@ Người dùng sửa Excel/CSV trong thư mục OneDrive rồi nhắn; Claude t�
 - Web vẫn đọc được định dạng nhiều sheet (CauHinh/SoLieuTuan/...) nếu sau này dùng.
 
 ## Giao diện
-- Tiêu đề trang & ô xem trước khi gửi link (Zalo/Teams…): `<title>Xưởng Phụ Trợ</title>` + thẻ `og:*` trong `<head>` của index.html, ảnh `web/og.png` (1200×630, logo PVFCCo + chữ XƯỞNG PHỤ TRỢ). Đổi địa chỉ web thì sửa cả `og:url`/`og:image`. Khi xem từng tuần, JS vẫn đổi document.title thành tên bảng tin tuần (để đặt tên file PDF).
+- Tiêu đề trang & ô xem trước khi gửi link (Zalo/Teams…): `<title>Xưởng Phụ Trợ</title>` + thẻ `og:*` (KHÔNG có description/og:description — người dùng bỏ dòng mô tả 18/11/2026) trong `<head>` của index.html, ảnh `web/og.png` (1200×630, logo PVFCCo + chữ XƯỞNG PHỤ TRỢ). Đổi địa chỉ web thì sửa cả `og:url`/`og:image`. Khi xem từng tuần, JS vẫn đổi document.title thành tên bảng tin tuần (để đặt tên file PDF).
 - `web/index.html` là bản build của app (logo nhúng base64). Bản dùng offline trên máy người dùng: `Bang tin an toan.html` cùng thư mục OneDrive — giữ hai bản giống nhau khi sửa giao diện.
 - Trên web (http/https) app tải `data/bangtin.xlsx`, ẩn nút mở file; Xuất PDF = window.print (CSS @page A4).
 - Màu thương hiệu: teal #549B9C / #2F6F70, cam #DF6437, PVFCCo xanh lá #009D48, navy #354085.
