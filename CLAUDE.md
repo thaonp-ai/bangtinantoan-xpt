@@ -1,6 +1,6 @@
 # Ghi chú cho Claude khi cập nhật repo này
 
-Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Tên Worker / địa chỉ: `xuongphutrodpm` → https://xuongphutrodpm.nguyenphuocthao14h5.workers.dev ; repo GitHub `thaonp-ai/xuongphutrodpm` (cả Worker và repo đổi từ `bangtinantoan-xpt` ngày 17/11/2026; `name` trong wrangler.jsonc phải trùng tên Worker trên Cloudflare). Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
+Web tĩnh bảng tin an toàn hàng tuần Xưởng Phụ Trợ. Tên Worker / địa chỉ: `xuongphutrodpm` → https://xuongphutrodpm.khoivanhanh.workers.dev ; repo GitHub `thaonp-ai/xuongphutrodpm` (cả Worker và repo đổi từ `bangtinantoan-xpt` ngày 17/11/2026; `name` trong wrangler.jsonc phải trùng tên Worker trên Cloudflare). Cloudflare Workers Builds tự triển khai từ nhánh `main` (assets-only, thư mục `web/`). Không có đăng nhập (người dùng chọn 11/2026).
 
 ## Khi người dùng nhắn “cập nhật” (người dùng yêu cầu 17/11/2026)
 Người dùng sửa Excel/CSV trong thư mục OneDrive rồi nhắn; Claude tự làm hết, không hỏi lại:
